@@ -25,6 +25,7 @@ cabal.project.local~
 .DS_Store
 .AppleDouble
 .LSOverride
+.env
 
 # Icon must end with two \r
 Icon
