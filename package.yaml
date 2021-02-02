@@ -1,0 +1,61 @@
+name:                burger-bot
+version:             1.0.1
+github:              "username/repo"
+license:             BSD3
+author:              "Fermin Gomez"
+maintainer:          "fgomez@itba.edu.ar"
+copyright:           "Fermin Gomez"
+
+extra-source-files:
+- README.md
+
+# Metadata used when publishing your package
+synopsis:            Telegram bot for ordering burgers.
+category:            Bot
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on Github at <https://github.com/username/repo#readme>
+
+dependencies:
+- base
+- aeson
+- http-api-data
+- http-client
+- http-client-tls
+- mtl
+- servant-client
+- telegram-bot-simple
+- text
+- time
+- postgresql-simple
+- aeson-pretty
+- bytestring
+# - cron
+- hashable
+- http-api-data
+- monad-control
+- profunctors
+- pretty-show
+- servant
+- split
+- stm
+- template-haskell
+- transformers
+- unordered-containers
+- cron >= 0.7.0
+- filepath
+- dotenv 
+
+ghc-options:
+- -Wall
+
+executables:
+  burger-bot:
+    source-dirs: app
+    main: Bot/Bot.hs
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N # -N option provides concurrent running on all available cores.

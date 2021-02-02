@@ -1,0 +1,65 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 44cdb2197b8ad0caf550830a3fb6623a629f283ee7d0d8850a5bff72d395f683
+
+name:           burger-bot
+version:        1.0.1
+synopsis:       Telegram bot for ordering burgers.
+description:    Please see the README on Github at <https://github.com/username/repo#readme>
+category:       Bot
+homepage:       https://github.com/username/repo#readme
+bug-reports:    https://github.com/username/repo/issues
+author:         Fermin Gomez
+maintainer:     fgomez@itba.edu.ar
+copyright:      Fermin Gomez
+license:        BSD3
+build-type:     Simple
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/username/repo
+
+executable burger-bot
+  main-is: Bot/Bot.hs
+  other-modules:
+      Lib
+      Model.Db
+      Model.Model
+      Paths_burger_bot
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , aeson-pretty
+    , base
+    , bytestring
+    , cron >=0.7.0
+    , dotenv
+    , filepath
+    , hashable
+    , http-api-data
+    , http-client
+    , http-client-tls
+    , monad-control
+    , mtl
+    , postgresql-simple
+    , pretty-show
+    , profunctors
+    , servant
+    , servant-client
+    , split
+    , stm
+    , telegram-bot-simple
+    , template-haskell
+    , text
+    , time
+    , transformers
+    , unordered-containers
+  default-language: Haskell2010
