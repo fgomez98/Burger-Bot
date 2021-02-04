@@ -17,6 +17,10 @@ tryGetValue :: Maybe a -> a -> a
 tryGetValue (Just value) _ = value
 tryGetValue Nothing value = value
 
+ifPresentOrElse :: Maybe a -> (a -> b) -> b -> b
+ifPresentOrElse (Just value) f _ = f value
+ifPresentOrElse Nothing f orElse =  orElse
+
 getId :: Telegram.User -> Int32
 getId user = let (Telegram.UserId val) = Telegram.userId user in val
 

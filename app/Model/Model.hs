@@ -67,11 +67,11 @@ toTouple a b = (a, b)
 
 ppOrder :: Model -> Text
 ppOrder model = case foldMap (withNewLine . (\(b, i) -> pack (show i) <> ". " <> ppBurgerWithPrice b)) (zipWith toTouple (burgers model) [1..]) of
-    ""    -> "Your order is empty. Type /menu to order a burger"
+    ""    -> "Your order is empty. Type /menu to add a burger to your order"
     items -> "Your order:\n" <> items <> "\nTotal: $" <> pack (show (orderPrice model))
 
 
-data Burger =  Layer Int Topping Burger | Simple | Double | Triple deriving (Show, Eq, Read)
+data Burger =  Layer Int Topping Burger | Simple | Double | Triple | Empty deriving (Show, Eq, Read)
 data Topping = Tomato | Cheese | Egg | Onion | Bacon |Lettuce | Pickle | Mushroom | Mayo | Ketchup | Mustard  deriving (Show, Eq, Read)
 -- this is a shorter version:
 -- data Topping = Tomato | Cheese | Egg | Onion | Bacon | Mayo | Ketchup | Mustard deriving (Show, Eq, Read)
@@ -93,6 +93,9 @@ burgerMenu :: [Burger]
 burgerMenu = [Simple, Double, Triple]
 
 
+burgerEmoji :: Burger -> Text
+burgerEmoji _ = " 🍔 "
+
 burgerPrice :: [(Burger, Double)]
 burgerPrice = [(Simple, 5.0), (Double, 7.0), (Triple, 9.0)]
 
@@ -102,6 +105,20 @@ burgerPrice = [(Simple, 5.0), (Double, 7.0), (Triple, 9.0)]
 
 toppingMenu :: [Topping]
 toppingMenu = [Tomato, Cheese, Egg, Onion , Bacon, Lettuce, Pickle, Mushroom]
+
+-- | no matching topping found will be represented with an empty string
+toppingEmoji :: Topping -> Text
+toppingEmoji Tomato = " 🍅 "
+toppingEmoji Cheese = " 🧀 "
+toppingEmoji Egg = " 🥚 "
+toppingEmoji Onion = " 🧅 "
+toppingEmoji Bacon = " 🥓 "
+toppingEmoji Lettuce = " 🥬 "
+toppingEmoji Pickle = " 🥒 "
+toppingEmoji Mushroom = " 🍄 "
+toppingEmoji Mayo = "" 
+toppingEmoji Ketchup = "" 
+toppingEmoji Mustard = "" 
 
 
 toppingPrice :: [(Topping, Double)]
