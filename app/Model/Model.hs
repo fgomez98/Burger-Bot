@@ -11,8 +11,8 @@ import           Data.Time.Clock.POSIX
 import Lib
 
 data User = User { userId :: Int32, firstName :: Text, lastName :: Text } deriving (Show)
--- data Burger = Burger Paty Topping
 
+-- data Burger = Burger Paty Topping
 -- data Paty = Simple | Double | Triple deriving (Show, Eq)
 -- data Topping = Tomato | Cheese | Egg | Onion | Bacon |Lettuce | Pickle | Mushroom deriving (Show, Eq)
 -- data Sauce = Mayo | Ketchup | Mustard deriving (Show, Eq)
@@ -73,8 +73,6 @@ ppOrder model = case foldMap (withNewLine . (\(b, i) -> pack (show i) <> ". " <>
 
 data Burger =  Layer Int Topping Burger | Simple | Double | Triple | Empty deriving (Show, Eq, Read)
 data Topping = Tomato | Cheese | Egg | Onion | Bacon |Lettuce | Pickle | Mushroom | Mayo | Ketchup | Mustard  deriving (Show, Eq, Read)
--- this is a shorter version:
--- data Topping = Tomato | Cheese | Egg | Onion | Bacon | Mayo | Ketchup | Mustard deriving (Show, Eq, Read)
 
 
 ppBurger :: Burger -> Text
@@ -87,8 +85,7 @@ ppBurger (Layer i t b) = ppBurger b <> ", " <> pack (show i) <> " " <> pack (sho
 ppBurgerWithPrice :: Burger -> Text
 ppBurgerWithPrice burger = ppBurger burger <> ". Price: $" <> pack (show (getPrice burger))
 
--- burgerMenu :: [(Text, Burger)]
--- burgerMenu = [("Simple", Simple), ("Double", Double), ("Triple", Triple)]
+
 burgerMenu :: [Burger]
 burgerMenu = [Simple, Double, Triple]
 
@@ -96,15 +93,14 @@ burgerMenu = [Simple, Double, Triple]
 burgerEmoji :: Burger -> Text
 burgerEmoji _ = " 🍔 "
 
+
 burgerPrice :: [(Burger, Double)]
 burgerPrice = [(Simple, 5.0), (Double, 7.0), (Triple, 9.0)]
 
 
--- toppingMenu :: [(Text, Topping)]
--- toppingMenu = [("Tomato", Tomato), ("Cheese", Cheese), ("Egg", Egg), ("Onion", Onion), ("Bacon", Bacon)]
-
 toppingMenu :: [Topping]
 toppingMenu = [Tomato, Cheese, Egg, Onion , Bacon, Lettuce, Pickle, Mushroom]
+
 
 -- | no matching topping found will be represented with an empty string
 toppingEmoji :: Topping -> Text

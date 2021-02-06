@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1268ccffcfc76a9d35aa9ebd7c53a5c78d46929c92c30b9fbbf987220387b327
+-- hash: eaae152705dbfbbe101c5cc3a355bd0a9101945449854ecbbb75d419ced45490
 
 name:           burger-bot
 version:        1.0.1
@@ -38,7 +38,6 @@ executable burger-bot
     , cron >=0.7.0
     , dotenv
     , filepath
-    , gtk3
     , hashable
     , http-api-data
     , http-client

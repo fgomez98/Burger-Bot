@@ -46,10 +46,7 @@ dependencies:
 - unordered-containers
 - cron >= 0.7.0
 - filepath
-- dotenv 
-- gtk3
-# - gtk2hs-buildtools
-# - haskell-gi
+- dotenv
 
 ghc-options:
 - -Wall

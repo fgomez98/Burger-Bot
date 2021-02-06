@@ -1,11 +1,13 @@
 create table if not exists burgers
 (
-    burger      text primary key
+    burger      text primary key,
+    cost        double precision not null
 );
 
 create table if not exists toppings
 (
-    topping     text primary key
+    topping     text primary key,
+    cost        double precision not null
 );
 
 create table if not exists clients
@@ -51,3 +53,8 @@ create table if not exists orders_products
     foreign key (productId) references products (productId),
     primary key (orderId, productId)
 );
+
+create view orders_view 
+    as select o.orderid as orderid, clientid, date, completed, sum(cost) as cost
+        from orders as o join orders_products as op on o.orderid = op.orderid
+        group by o.orderid, clientid, date, completed;
