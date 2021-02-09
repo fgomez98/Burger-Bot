@@ -1,7 +1,7 @@
 name:                burger-bot
 version:             1.0.1
-github:              "username/repo"
-license:             BSD3
+github:              "fgomez98/Burger-Bot"
+license:             MIT
 author:              "Fermin Gomez"
 maintainer:          "fgomez@itba.edu.ar"
 copyright:           "Fermin Gomez"
@@ -16,7 +16,7 @@ category:            Bot
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on Github at <https://github.com/username/repo#readme>
+description:         Please see the README on Github at <https://github.com/fgomez98/Burger-Bot#readme>
 
 dependencies:
 - base
