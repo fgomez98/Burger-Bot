@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: eaae152705dbfbbe101c5cc3a355bd0a9101945449854ecbbb75d419ced45490
+-- hash: 08125c65008c723528159a76cbf5eed7fb4a69d01fd46a0d53d9ebce44312734
 
 name:           burger-bot
 version:        1.0.1
@@ -31,9 +31,11 @@ executable burger-bot
       app
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson
+      Spock
+    , aeson
     , aeson-pretty
     , base
+    , blaze-html
     , bytestring
     , cron >=0.7.0
     , dotenv
@@ -54,6 +56,44 @@ executable burger-bot
     , telegram-bot-simple
     , template-haskell
     , text
+    , text-time
+    , time
+    , transformers
+    , unordered-containers
+  default-language: Haskell2010
+
+executable web-app
+  main-is: App/App.hs
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      Spock
+    , aeson
+    , aeson-pretty
+    , base
+    , blaze-html
+    , bytestring
+    , cron >=0.7.0
+    , dotenv
+    , filepath
+    , hashable
+    , http-api-data
+    , http-client
+    , http-client-tls
+    , monad-control
+    , mtl
+    , postgresql-simple
+    , pretty-show
+    , profunctors
+    , servant
+    , servant-client
+    , split
+    , stm
+    , telegram-bot-simple
+    , template-haskell
+    , text
+    , text-time
     , time
     , transformers
     , unordered-containers

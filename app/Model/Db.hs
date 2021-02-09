@@ -2,19 +2,24 @@
 
 module Model.Db where
 
-import Data.Text
-import Data.Maybe
-import Data.List
-import Data.Monoid
-import Data.Int(Int64)
+import           Data.Text
+import           Data.Maybe
+import           Data.List
+import           Data.Monoid
+import           Data.Int(Int64)
 import           Control.Monad.Trans              (liftIO)
 import           Data.Time.Clock
-import Database.PostgreSQL.Simple
-import Database.PostgreSQL.Simple.FromRow
-import Database.PostgreSQL.Simple.ToField
-import Database.PostgreSQL.Simple.ToRow ( ToRow(toRow) )
-import Model.Model as Model
-import Lib
+import           Database.PostgreSQL.Simple
+import           Database.PostgreSQL.Simple.FromRow
+import           Database.PostgreSQL.Simple.ToField
+import           Database.PostgreSQL.Simple.ToRow ( ToRow(toRow) )
+
+import           Model.Model as Model
+import           Lib
+
+
+-- | DAO's 
+-- | ----------------------------------
 
 
 data BurgerDao = BurgerDao {
@@ -51,15 +56,17 @@ instance ToRow ClientDao where
   toRow d = [toField (Model.Db.clientId d), toField (Model.Db.firstName d), toField (Model.Db.lastName d)]
 
 data OrderDao = OrderDao {
-    orderId           :: Int,
-    clientId_order    :: Int,
-    date              :: UTCTime,
-    completed         :: Bool,
-    cost              :: Double
+    orderId                 :: Int,
+    clientId_order          :: Int,
+    orderClientFirstName    :: Text,
+    orderClientLastName     :: Text,
+    date                    :: UTCTime,
+    completed               :: Bool,
+    cost                    :: Double
 } deriving (Show)
 
 instance FromRow OrderDao where
-  fromRow = OrderDao <$> field <*> field <*> field <*> field <*> field
+  fromRow = OrderDao <$> field <*> field <*> field <*> field <*> field <*> field <*> field
 
 instance ToRow OrderDao where
   toRow d = [toField (clientId_order d), toField (Model.Db.date d)]
@@ -100,9 +107,8 @@ instance ToRow OrderProductDao where
   toRow d = [toField (orderId_orderProduct d), toField (productId_orderProduct d), toField (cost_orderProduct d)]
 
 
--- burger2BurgerDao :: Burger -> BurgerDao
--- burger2BurgerDao = foldBurger (const . const id) (BurgerDao "Simple") (BurgerDao "Double") (BurgerDao "Triple")
-
+-- | QUERIES
+-- | ---------------------------------- 
 
 -- | registers a burger, returns productId
 insertBurger :: Burger -> IO Int
@@ -110,19 +116,17 @@ insertBurger (Layer amount topping burger) = do
   c <- connection
   productId <- insertBurger burger
   result <- (query c "INSERT INTO products_toppings (productid, topping, amount) VALUES (?, ?, ?) RETURNING productid"
-            $ 
-            ProductToppingDao { productId_productTopping = productId,
-                                topping_productTopping = pack (show topping),
-                                amount = amount }
-            :: IO [Only Int])
-  pure (fromOnly (Prelude.head result))
+      $ ProductToppingDao { productId_productTopping  = productId,
+                            topping_productTopping    = pack (show topping),
+                            amount                    = amount } 
+      :: IO [Only Int])
+  return (fromOnly (Prelude.head result))
 insertBurger burger = do 
   c <- connection
   result <- (query c "INSERT INTO products (burger) VALUES (?) RETURNING productid" 
-            $
-            Only (pack (show burger))
+            $ Only (pack (show burger)) 
             :: IO [Only Int])
-  pure (fromOnly (Prelude.head result))
+  return (fromOnly (Prelude.head result))            
 
 
 -- | registers a client if not present, returns clientId
@@ -130,12 +134,11 @@ insertClient :: Client -> IO Int
 insertClient client = do 
   c <- connection
   _ <- (query c "INSERT INTO clients (clientId, firstName, lastName) VALUES (?, ?, ?) ON CONFLICT DO NOTHING RETURNING clientId" 
-            $
-            ClientDao { Model.Db.clientId   = fromIntegral (Model.clientId client), 
-                        Model.Db.firstName  = clientFirstName client,
-                        Model.Db.lastName   = clientLastName client }
+            $ ClientDao { Model.Db.clientId   = fromIntegral (Model.clientId client), 
+                          Model.Db.firstName  = clientFirstName client,
+                          Model.Db.lastName   = clientLastName client }
             :: IO [Only Int])
-  pure (fromIntegral (Model.clientId client))
+  return (fromIntegral (Model.clientId client))
 
 
 -- | registers an order from a client, returns orderId
@@ -146,19 +149,17 @@ insertOrder client burgers = do
   let productsPrice = Prelude.zip productsIds (Prelude.map getPrice burgers)
   c <- connection
   result <- (query c "INSERT INTO orders (clientId, date) VALUES (?, ?) RETURNING orderid" 
-            $
-            OrderDao {  clientId_order  = clientId,
-                        Model.Db.date   = Model.date client }      
+            $ OrderDao {  clientId_order  = clientId,
+                          Model.Db.date   = Model.date client }      
             :: IO [Only Int])
   let orderId = fromOnly (Prelude.head result)
   mapM_ ( \(productId, price) -> 
             execute c "INSERT INTO orders_products (orderid, productid, cost) VALUES (?, ?, ?)"
-            $
-            OrderProductDao { orderId_orderProduct    = orderId,
-                              productId_orderProduct  = productId,
-                              cost_orderProduct       = price } )
+            $ OrderProductDao { orderId_orderProduct    = orderId,
+                                productId_orderProduct  = productId,
+                                cost_orderProduct       = price } )
         productsPrice
-  pure orderId
+  return orderId
 
 
 -- | marks an order as completed
@@ -170,6 +171,7 @@ completeOrder orderId = do
 
 
 -- | I just wanted to change function name 
+foldQuery :: Connection -> Query -> Only Int -> a -> (a -> Only Int -> IO a) -> IO a
 foldQuery = fold
 
 data Filters = Filters {
@@ -179,7 +181,7 @@ data Filters = Filters {
     filterFromCost  :: Maybe Double,
     filterToCost    :: Maybe Double,
     filterCompleted :: Maybe Bool
-}
+} deriving (Show)
 
 defaultFilters :: Filters
 defaultFilters = Filters Nothing Nothing Nothing Nothing Nothing Nothing
@@ -191,7 +193,7 @@ selectOrders maybeFilters = do
     whereList = Data.Maybe.catMaybes -- The catMaybes function takes a list of Maybes and returns a list of all the Just values.
                [ const " clientId =  ? "  <$> filterClientId maybeFilters
                , const " date >= ? "      <$> filterFromDate maybeFilters
-               , const " date < ? "       <$> filterToDate maybeFilters
+               , const " date <= ? "      <$> filterToDate maybeFilters
                , const " completed = ? "  <$> filterCompleted maybeFilters ]
     paramList = Data.Maybe.catMaybes
                 [ -- where params 
@@ -203,20 +205,42 @@ selectOrders maybeFilters = do
                 , toField <$> filterFromCost maybeFilters
                 , toField <$> filterToCost maybeFilters ]
     havingList = Data.Maybe.catMaybes
-               [ const " sum(cost) >= ? "   <$> filterFromCost maybeFilters
-               , const " sum(cost) < ? "    <$> filterToCost maybeFilters ]      
+               [ const " sum(cost) >= ? " <$> filterFromCost maybeFilters
+               , const " sum(cost) <= ? " <$> filterToCost maybeFilters ]      
     whereQuery = if Data.List.null whereList
            then mempty
            else "WHERE " <> mconcat ( Data.List.intersperse " AND " whereList)
     havingQuery = if Data.List.null havingList
            then mempty
            else "HAVING " <> mconcat ( Data.List.intersperse " AND " havingList)   
-    q = "SELECT o.orderid as orderid, clientid, date, completed, sum(cost) as cost FROM orders AS o JOIN orders_products AS op on o.orderid = op.orderid  "
+    q = "SELECT o.orderid as orderid, o.clientid as clientid, firstname, lastname, date, completed, sum(cost) as cost FROM orders AS o JOIN orders_products AS op on o.orderid = op.orderid JOIN clients AS c ON o.clientid = c.clientid "
         <> whereQuery 
-        <> "GROUP BY o.orderid, clientid, date, completed "
+        <> "GROUP BY o.orderid, c.clientid, date, completed, firstname, lastname "
         <> havingQuery
+        <> "ORDER BY date ASC"
   c <- connection  
   query c q paramList    
+
+
+-- | get all orders that match arguments
+selectOrder :: Int -> IO OrderDao
+selectOrder orderId = do 
+  let  q =  "SELECT o.orderid as orderid, o.clientid as clientid, firstname, lastname, date, completed, sum(cost) as cost \
+            \FROM orders AS o \
+            \JOIN orders_products AS op on o.orderid = op.orderid \
+            \JOIN clients AS c ON o.clientid = c.clientid \
+            \WHERE o.orderid = ? \
+            \GROUP BY o.orderid, c.clientid, date, completed, firstname, lastname "
+  c <- connection  
+  result <- query c q $ Only orderId
+  return (Prelude.head result)
+
+
+-- | get all orders that match arguments
+selectClient :: Int -> IO [ClientDao]
+selectClient clientId = do 
+  c <- connection  
+  query c "SELECT * FROM clients WHERE clientId = ?" $ Only clientId
 
 
 -- | get all products from an order
@@ -234,21 +258,23 @@ foldProductsConsumer acc row = do
   ptDaos <- (query c "SELECT * FROM products_toppings WHERE productid = ?" $ Only productId :: IO [ProductToppingDao])
   return (burgerFrom (Prelude.head pDaos) ptDaos : acc)
 
+
 burgerFrom :: ProductDao -> [ProductToppingDao] -> Burger
 burgerFrom pDao = Prelude.foldr 
   (\ptDao burger -> Layer (amount ptDao) (read ((unpack . topping_productTopping) ptDao) :: Topping) burger) (read ((unpack . burger_product) pDao) :: Burger)
 
+
 selectBurgerPrice :: Burger -> IO Double
 selectBurgerPrice burger = do
   c <- connection
-  price <- (query c "select cost from burgers where burger = ?" $ Only (show burger) :: IO [Only Double])
-  return (fromOnly (Prelude.head price))
+  fromOnly . Prelude.head <$> (query c "select cost from burgers where burger = ?" $ Only (show burger) :: IO [Only Double])
+
 
 selectToppingPrice :: Topping -> IO Double
 selectToppingPrice topping = do
   c <- connection
-  price <- (query c "select cost from toppings where topping = ?" $ Only (show topping) :: IO [Only Double])
-  return (fromOnly (Prelude.head price))  
+  fromOnly . Prelude.head <$> (query c "select cost from toppings where topping = ?" $ Only (show topping) :: IO [Only Double])
+
 
 -- | Connection to postgresql database
 connection :: IO Connection

@@ -32,9 +32,8 @@ dependencies:
 - postgresql-simple
 - aeson-pretty
 - bytestring
-# - cron
+- cron
 - hashable
-- http-api-data
 - monad-control
 - profunctors
 - pretty-show
@@ -47,6 +46,10 @@ dependencies:
 - cron >= 0.7.0
 - filepath
 - dotenv
+- blaze-html
+- Spock
+- text-time
+
 
 ghc-options:
 - -Wall
@@ -60,29 +63,13 @@ executables:
       - -threaded
       - -rtsopts
       - -with-rtsopts=-N # -N option provides concurrent running on all available cores.
-  # application:
-  #   source-dirs: app
-  #   main: App/App.hs
-  #   other-modules:       []
-  #   ghc-options:
-  #     - -threaded
-  #     - -rtsopts
-  #     - -with-rtsopts=-N # -N option provides concurrent running on all available cores.
-
-# executables:
-#   ObjectServer:
-#     source-dirs:         app
-#     main:                Main.hs
-#     other-modules:       []
-#     ghc-options:
-#     - -threaded
-#     - -rtsopts
-#     - -with-rtsopts=-N
-#   Client:
-#     source-dirs:         app
-#     other-modules:       []
-#     main:                Client.hs
-#     ghc-options:
-#     - -threaded
-#     - -rtsopts
-#     - -with-rtsopts=-N
+      
+  web-app:
+    source-dirs: app
+    main: App/App.hs
+    other-modules:       []
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N # -N option provides concurrent running on all available cores.
+      

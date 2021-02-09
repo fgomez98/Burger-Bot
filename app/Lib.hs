@@ -13,24 +13,34 @@ tryCatch :: MayFail a -> (a -> b) -> ExHandler b -> b
 tryCatch (Ok a) function _ = function a 
 tryCatch (Raise exception) _ handler = handler exception
 
+
 tryGetValue :: Maybe a -> a -> a
 tryGetValue (Just value) _ = value
 tryGetValue Nothing value = value
+
 
 ifPresentOrElse :: Maybe a -> (a -> b) -> b -> b
 ifPresentOrElse (Just value) f _ = f value
 ifPresentOrElse Nothing f orElse =  orElse
 
+
 getId :: Telegram.User -> Int32
 getId user = let (Telegram.UserId val) = Telegram.userId user in val
+
 
 takeAt :: Int -> [a] -> [a]
 takeAt = flip (foldr aux (const [])) where 
     aux x h 0 = h (-1)
     aux x h n = x : h (n-1)
 
+
 string2Text :: String -> Text    
 string2Text = pack
 
+
 showText :: Show a => a -> Text    
 showText = pack . show
+
+
+toTouple :: a -> b -> (a,b)
+toTouple a b = (a, b)

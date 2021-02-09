@@ -6,23 +6,21 @@ import           Control.Applicative              ((<|>))
 import           Control.Monad.Trans              (liftIO)
 import           Data.Text                        (Text, pack)
 import qualified Data.Text                        as Text
-import Data.Text.Read
+import           Data.Text.Read
 import           Data.Time
 import           Data.Time.Clock
 import           Data.Time.Clock.POSIX
-
 import qualified Telegram.Bot.API                 as Telegram
 import           Telegram.Bot.Simple
 import           Telegram.Bot.Simple.Debug
 import           Telegram.Bot.Simple.UpdateParser
+import           GHC.Int (Int32)
+import           Control.Monad (void)
+import           Configuration.Dotenv
 
-import GHC.Int (Int32)
-import Lib
-import Model.Model as Model
-import Model.Db as Db
-
-import Control.Monad (void)
-import Configuration.Dotenv
+import           Lib
+import           Model.Model as Model
+import           Model.Db as Db
 
 
 data Action
@@ -142,7 +140,7 @@ handleUpdate _model update = (parseUpdate
   <|> Start                         <$    command "start" 
   <|> ShowOrder                     <$    command "show" 
   <|> Remove                        <$>   command "remove"
-  <|> Confirm (getOrderData update)   <$    command "confirm"
+  <|> Confirm (getOrderData update) <$    command "confirm"
   <|> callbackQueryDataRead
   <|> Help                          <$    (command "help" <|> text)) update
 

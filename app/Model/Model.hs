@@ -1,36 +1,35 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Model.Model where
     
-import GHC.Int (Int32)
-
+import           GHC.Int (Int32)
 import           Data.Text                        (Text, pack)
 import qualified Data.Text                        as Text
 import           Data.Time
 import           Data.Time.Clock
 import           Data.Time.Clock.POSIX
+
 import Lib
 
-data User = User { userId :: Int32, firstName :: Text, lastName :: Text } deriving (Show)
-
--- data Burger = Burger Paty Topping
--- data Paty = Simple | Double | Triple deriving (Show, Eq)
--- data Topping = Tomato | Cheese | Egg | Onion | Bacon |Lettuce | Pickle | Mushroom deriving (Show, Eq)
--- data Sauce = Mayo | Ketchup | Mustard deriving (Show, Eq)
--- data Bread = White | Herbs | Grains | GlutenFree  deriving (Show, Eq)
+data User = User { 
+  userId    :: Int32, 
+  firstName :: Text,
+  lastName  :: Text 
+} deriving (Show)
 
 
-data Model = Model
-  { burgers :: [Burger],
-    currentBurger :: Maybe Burger
-  } deriving (Show)
+data Model = Model { 
+  burgers       :: [Burger],
+  currentBurger :: Maybe Burger
+} deriving (Show)
 
 
-data Client = Client
-  { clientId :: Int32,
-    clientFirstName :: Text,
-    clientLastName :: Text,
-    date :: UTCTime
-  } deriving (Show, Read)
+data Client = Client { 
+  clientId        :: Int32,
+  clientFirstName :: Text,
+  clientLastName  :: Text,
+  date            :: UTCTime
+} deriving (Show, Read)
 
 
 initOrder :: Burger -> Model -> Model
@@ -59,10 +58,6 @@ removeBurger index model =  model { burgers = takeAt index (burgers model) }
 
 withNewLine :: Text -> Text
 withNewLine = ( <> "\n")
-
-
-toTouple :: a -> b -> (a,b)
-toTouple a b = (a, b)
 
 
 ppOrder :: Model -> Text
