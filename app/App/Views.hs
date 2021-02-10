@@ -84,10 +84,10 @@ pendingOrdersHTML orders = H.html $ do
   ordersDaoTableHTML orders   
 
 
-orderProductsHTML :: OrderDao -> [Burger] -> Html
-orderProductsHTML order burgers = H.html $ do
+orderProductsHTML :: OrderDao -> [Burger] -> Prices -> Html
+orderProductsHTML order burgers prices = H.html $ do
   headerHTML False False
-  orderProductsCardHTML order burgers
+  orderProductsCardHTML order burgers prices
 
 
 ordersDaoTableRowHTML :: OrderDao -> Html
@@ -125,11 +125,11 @@ ordersDaoTableHTML os = do
         H.tbody $ forM_ os ordersDaoTableRowHTML
 
 
-burgerListItemHTML:: Burger -> Html
-burgerListItemHTML burger = do
+burgerListItemHTML :: Prices -> Burger ->  Html
+burgerListItemHTML prices burger = do
     H.li ! class_ "list-group-item" $ do
         H.span ! class_"badge" $ do 
-            toHtml (getPrice burger)
+            toHtml (getPrice prices burger)
             " $ "
         toHtml (ppBurger burger)
 
@@ -146,8 +146,8 @@ completedHTML = do
         H.label ! class_ "btn btn-success disabled no-click my-2 my-sm-0" $ "Order Completed"                    
 
 
-orderProductsCardHTML :: OrderDao -> [Burger] -> Html
-orderProductsCardHTML order burgers = do
+orderProductsCardHTML :: OrderDao -> [Burger] -> Prices -> Html
+orderProductsCardHTML order burgers prices = do
     H.div ! class_ "card" $ do
         H.div ! class_ "card-body" $ do
             H.h4 ! class_ "card-title" $ toHtml $ "Order " <> pack (show (orderId order))
@@ -155,7 +155,7 @@ orderProductsCardHTML order burgers = do
             case burgers of 
                 [] ->   H.p ! class_"card-text" $ "Empty Order"
                 bs ->   H.ul ! class_ "list-group" $ do
-                    forM_ bs burgerListItemHTML
+                    forM_ bs (burgerListItemHTML prices)
                     if completed order
                         then completedHTML
                         else completedActionHTML order

@@ -16,6 +16,7 @@ import            Data.Text.Time (parseUTCTimeOrError)
 
 import            App.Views
 import            App.Conf
+import            Model.Model
 import            Model.Db
 
 
@@ -52,8 +53,10 @@ app = do
   get ("order" <//> var) $ \orderId -> do
     orderDao <- liftIO $ selectOrder orderId
     burgers <- liftIO $ selectProducts orderId
+    burgersPrices <- liftIO selectBurgersPrices
+    toppingsPrices <- liftIO selectToppingsPrices
     let route = renderRoute ("done" <//> var) orderId
-    html . toStrict $ R.renderHtml $ orderProductsHTML orderDao burgers
+    html . toStrict $ R.renderHtml $ orderProductsHTML orderDao burgers (Prices toppingsPrices burgersPrices)
   get ("done" <//> var) $ \orderId -> do
     liftIO $ completeOrder orderId
     redirect "/"  

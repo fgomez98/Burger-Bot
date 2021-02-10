@@ -17,10 +17,15 @@ data User = User {
   lastName  :: Text 
 } deriving (Show)
 
+data Prices = Prices {
+  toppingsPrices  :: [(Topping, Double)],
+  burgersPrices   :: [(Burger, Double)]
+} deriving (Show)
 
 data Model = Model { 
-  burgers       :: [Burger],
-  currentBurger :: Maybe Burger
+  burgers         :: [Burger],
+  currentBurger   :: Maybe Burger,
+  prices          :: Prices
 } deriving (Show)
 
 
@@ -61,7 +66,7 @@ withNewLine = ( <> "\n")
 
 
 ppOrder :: Model -> Text
-ppOrder model = case foldMap (withNewLine . (\(b, i) -> pack (show i) <> ". " <> ppBurgerWithPrice b)) (zipWith toTouple (burgers model) [1..]) of
+ppOrder model = case foldMap (withNewLine . (\(b, i) -> pack (show i) <> ". " <> ppBurgerWithPrice (prices model) b)) (zipWith toTouple (burgers model) [1..]) of
     ""    -> "Your order is empty. Type /menu to add a burger to your order"
     items -> "Your order:\n" <> items <> "\nTotal: $" <> pack (show (orderPrice model))
 
@@ -77,8 +82,8 @@ ppBurger Triple = "Triple Burger"
 ppBurger (Layer i t b) = ppBurger b <> ", " <> pack (show i) <> " " <> pack (show t)
 
 
-ppBurgerWithPrice :: Burger -> Text
-ppBurgerWithPrice burger = ppBurger burger <> ". Price: $" <> pack (show (getPrice burger))
+ppBurgerWithPrice :: Prices -> Burger -> Text
+ppBurgerWithPrice prices burger = ppBurger burger <> ". Price: $" <> pack (show (getPrice prices burger))
 
 
 burgerMenu :: [Burger]
@@ -89,8 +94,8 @@ burgerEmoji :: Burger -> Text
 burgerEmoji _ = " 🍔 "
 
 
-burgerPrice :: [(Burger, Double)]
-burgerPrice = [(Simple, 5.0), (Double, 7.0), (Triple, 9.0)]
+-- burgerPrice :: [(Burger, Double)]
+-- burgerPrice = [(Simple, 5.0), (Double, 7.0), (Triple, 9.0)]
 
 
 toppingMenu :: [Topping]
@@ -112,8 +117,8 @@ toppingEmoji Ketchup = ""
 toppingEmoji Mustard = "" 
 
 
-toppingPrice :: [(Topping, Double)]
-toppingPrice = [(Tomato, 1.0), (Cheese, 2.0), (Egg, 1.0), (Onion, 1.0), (Bacon, 3.0),  (Lettuce, 1.5), (Pickle, 1.5), (Mushroom, 3.0),(Mayo, 0.5), (Ketchup, 0.5), (Mustard, 0.5)]
+-- toppingPrice :: [(Topping, Double)]
+-- toppingPrice = [(Tomato, 1.0), (Cheese, 2.0), (Egg, 1.0), (Onion, 1.0), (Bacon, 3.0),  (Lettuce, 1.5), (Pickle, 1.5), (Mushroom, 3.0),(Mayo, 0.5), (Ketchup, 0.5), (Mustard, 0.5)]
 
 
 sauceMenu :: [Topping]
@@ -149,30 +154,18 @@ add burger topping amount = recBurger increment (append Simple) (append Double) 
     append b = Layer amount topping b
 
 
-getToppingPrice :: Topping -> Double
-getToppingPrice target = foldr (\(topping, price) r -> if topping == target then price else r) 0.0 toppingPrice
+getToppingPrice :: Prices -> Topping -> Double
+getToppingPrice prices target = foldr (\(topping, price) r -> if topping == target then price else r) 0.0 (toppingsPrices prices)
 
 
-getBurgerPrice :: Burger -> Double
-getBurgerPrice target = foldr (\(burger, price) r -> if burger == target then price else r) 0.0 burgerPrice
+getBurgerPrice :: Prices -> Burger -> Double
+getBurgerPrice prices target = foldr (\(burger, price) r -> if burger == target then price else r) 0.0 (burgersPrices prices)
 
 
-getPrice :: Burger -> Double
-getPrice (Layer i t b) = fromIntegral i * getToppingPrice t + getPrice b
-getPrice size = getBurgerPrice size
+getPrice :: Prices -> Burger -> Double
+getPrice prices (Layer i t b) = fromIntegral i * getToppingPrice prices t + getPrice prices b
+getPrice prices size = getBurgerPrice prices size
 
 
 orderPrice :: Model -> Double
-orderPrice = sum . map getPrice . burgers
-
--- remove :: Burger -> Topping -> Burger
--- remove burger topping = foldBurger take False False False burger where
---     take (Layer i t burger) = if t == topping then burger else Layer i t burger
-
--- -- Monads for try catch
--- remove :: Burger -> Int -> Topping -> Burger
--- remove burger amount topping = foldBurger take False False False burger where
---     take (Layer i t burger) = if t == topping then burger else Layer (i - amount) t burger    
-
--- La idea es que junte las cantidades de todo, otra forma de solucionarlo es ver si ya esta el ingrediente y no darle la opcion al cliente
--- normalize :: Burger -> Burger
+orderPrice model = sum . map (getPrice (prices model)) . burgers $ model
