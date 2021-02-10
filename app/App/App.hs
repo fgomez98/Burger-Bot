@@ -64,10 +64,10 @@ app = do
 
 getParam :: Text -> [(Text, Text)] -> Maybe Text 
 getParam target = foldr (\(param, value) ret -> if h $ compare target param then ifPresent value else ret) Nothing where
-  h EQ = True
-  h _ = False
-  ifPresent "" = Nothing
-  ifPresent e = Just e
+  h EQ  = True
+  h _   = False
+  ifPresent ""  = Nothing
+  ifPresent e   = Just e
 
 
 asInt :: Text -> Int 
@@ -86,10 +86,10 @@ status2Bool :: Maybe Text -> Maybe Bool
 status2Bool status = do 
   x <- status
   case x of
-    "All" -> fail ""
-    "Completed" -> return True
+    "All"           -> fail ""
+    "Completed"     -> return True
     "Not Completed" -> return False
-    _ -> fail ""        
+    _               -> fail ""        
 
 
 landingHTML :: Text
@@ -103,64 +103,3 @@ landingHTML =
       \</form>\
     \</body>\
   \</html>"
-
-
--- data Search = Search { 
---     sclientId  :: Text,
---     sfromDate  :: Text,
---     stoDate    :: Text,
---     sfromCost  :: Text,
---     stoCost    :: Text,
---     sstatus :: Text
--- } deriving (Show)
-
--- searchForm :: Monad m => F.Form Text m Search
--- searchForm = Search
---   <$> "sclientId" F..: F.text Nothing
---   <*> "sfromDate" F..: F.text Nothing
---   <*> "stoDate" F..: F.text Nothing
---   <*> "sfromCost" F..: F.text Nothing
---   <*> "stoCost" F..: F.text Nothing
---   <*> "sstatus" F..: F.text Nothing
-
-
--- searchAction :: SpockAction () () () ()
--- searchAction = do
---   f <- F.runForm "myForm" searchForm
---   pendingOrders <- liftIO $ selectOrders $ Filters {
---     filterClientId  = Nothing,
---     filterFromDate  = Nothing,
---     filterToDate    = Nothing,
---     filterFromCost  = Nothing,
---     filterToCost    = Nothing,
---     filterCompleted = Nothing
---   }
---   -- liftIO (print f)
---   case f of
---     (view, Nothing) ->
---       do
---         -- liftIO (putStrLn "hello")
---         html . toStrict $ R.renderHtml $ allOrdersHTML pendingOrders
---     (view, Just search) ->
---       do 
---         liftIO (print search)
---         html landingHTML
-
--- searchView :: View H.Html -> H.Html
--- searchView view = do
---   label     "name" view "Name: "
---   inputText "name" view
---   H.br
-
---   errorList "mail" view
---   label     "mail" view "Email address: "
---   inputText "mail" view
---   H.br  
-
-
--- newtype OrderDone = OrderDone Int deriving (Hashable, Typeable, Eq)
-
--- instance SafeAction () () () OrderDone where
---     runSafeAction (OrderDone orderId) = do 
---         liftIO $ completeOrder orderId
---         redirect "/"

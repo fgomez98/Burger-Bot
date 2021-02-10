@@ -48,7 +48,7 @@ changeOrder b model = model { currentBurger = Just b }
 fOrder :: (Burger -> Burger) -> Model -> Model
 fOrder f model =  model { currentBurger = case currentBurger model of 
   Nothing -> Nothing
-  Just b -> Just (f b) } 
+  Just b  -> Just (f b) } 
 
 
 -- | Adds a burger from the menu to client order
@@ -94,10 +94,6 @@ burgerEmoji :: Burger -> Text
 burgerEmoji _ = " 🍔 "
 
 
--- burgerPrice :: [(Burger, Double)]
--- burgerPrice = [(Simple, 5.0), (Double, 7.0), (Triple, 9.0)]
-
-
 toppingMenu :: [Topping]
 toppingMenu = [Tomato, Cheese, Egg, Onion , Bacon, Lettuce, Pickle, Mushroom]
 
@@ -115,10 +111,6 @@ toppingEmoji Mushroom = " 🍄 "
 toppingEmoji Mayo = "" 
 toppingEmoji Ketchup = "" 
 toppingEmoji Mustard = "" 
-
-
--- toppingPrice :: [(Topping, Double)]
--- toppingPrice = [(Tomato, 1.0), (Cheese, 2.0), (Egg, 1.0), (Onion, 1.0), (Bacon, 3.0),  (Lettuce, 1.5), (Pickle, 1.5), (Mushroom, 3.0),(Mayo, 0.5), (Ketchup, 0.5), (Mustard, 0.5)]
 
 
 sauceMenu :: [Topping]

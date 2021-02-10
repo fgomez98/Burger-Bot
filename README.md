@@ -14,3 +14,4 @@ https://github.com/mike-kob/HaskellBot/blob/master/src/DBUtils.hs
 https://www.youtube.com/watch?v=dfTTgdlsSzo&t=421s
 https://github.com/keoko/postgresql-simple-examples
 https://github.com/mike-kob/HaskellBot
+https://mmhaskell.com/blog/2018/9/17/simple-web-routing-with-spock

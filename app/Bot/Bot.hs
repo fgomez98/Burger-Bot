@@ -127,9 +127,9 @@ undoBtn = actionButton "Undo"
 -- This allows us to know to whom (client) we are speaking 
 getOrderData :: Telegram.Update -> Maybe Client
 getOrderData update =  do 
-  msg <- Telegram.updateMessage update
-  user <- Telegram.messageFrom msg
-  lastName <- Telegram.userLastName user
+  msg       <- Telegram.updateMessage update
+  user      <- Telegram.messageFrom msg
+  lastName  <- Telegram.userLastName user
   return (Client { Model.clientId = getId user, clientFirstName = Telegram.userFirstName user, clientLastName = lastName, Model.date = posixSecondsToUTCTime (Telegram.messageDate msg)})
 
 
@@ -183,7 +183,7 @@ handleAction Order model = let Just b = currentBurger model in
 
 handleAction (Confirm (Just client)) model =  model { currentBurger = Nothing, burgers = [] }  <#
 		case burgers model of 
-			[] -> do 
+			[]    -> do 
 				replyText "Your order is empty. Type /menu to add a burger to your order"
 				pure DoNothing
 			items -> do 
@@ -196,7 +196,7 @@ handleAction (Confirm Nothing) model = model <# do
       pure DoNothing      
 
 handleAction (Remove item) model = case decimal item of 
-        Left _ -> model <# do 
+        Left _          -> model <# do 
           replyText "Plese enter a number.\n Usage: /remove <number>"
           pure DoNothing    
         Right (index,_) -> removeBurger (index-1) model <# do

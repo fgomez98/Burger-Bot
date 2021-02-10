@@ -149,7 +149,7 @@ insertOrder client burgersPrices burgers = do
   clientId <- insertClient client
   productsIds <- mapM insertBurger burgers
   let productsPrice = Prelude.zip productsIds burgersPrices
-  c <- connection
+  c      <- connection
   result <- (query c "INSERT INTO orders (clientId, date) VALUES (?, ?) RETURNING orderid" 
             $ OrderDao {  clientId_order  = clientId,
                           Model.Db.date   = Model.date client }      
@@ -186,8 +186,10 @@ data Filters = Filters {
     filterCompleted :: Maybe Bool
 } deriving (Show)
 
+
 defaultFilters :: Filters
 defaultFilters = Filters Nothing Nothing Nothing Nothing Nothing Nothing
+
 
 -- | get all orders that match arguments
 selectOrders :: Filters -> IO [OrderDao]
@@ -234,8 +236,8 @@ selectOrder orderId = do
             \JOIN clients AS c ON o.clientid = c.clientid \
             \WHERE o.orderid = ? \
             \GROUP BY o.orderid, c.clientid, date, completed, firstname, lastname "
-  c <- connection  
-  result <- query c q $ Only orderId
+  c       <- connection  
+  result  <- query c q $ Only orderId
   return (Prelude.head result)
 
 
@@ -256,9 +258,9 @@ selectProducts orderId = do
 foldProductsConsumer :: [Burger] -> Only Int -> IO [Burger]
 foldProductsConsumer acc row = do
   let productId = fromOnly row
-  c <- connection
-  pDaos <- (query c "SELECT * FROM products WHERE productid = ?" $ Only productId :: IO [ProductDao])
-  ptDaos <- (query c "SELECT * FROM products_toppings WHERE productid = ?" $ Only productId :: IO [ProductToppingDao])
+  c       <- connection
+  pDaos   <- (query c "SELECT * FROM products WHERE productid = ?" $ Only productId :: IO [ProductDao])
+  ptDaos  <- (query c "SELECT * FROM products_toppings WHERE productid = ?" $ Only productId :: IO [ProductToppingDao])
   return (burgerFrom (Prelude.head pDaos) ptDaos : acc)
 
 
@@ -269,14 +271,14 @@ burgerFrom pDao = Prelude.foldr
 
 selectBurgersPrices :: IO [(Burger, Double)]
 selectBurgersPrices = do
-  c <- connection
+  c     <- connection
   bDaos <- query_ c "select * from burgers"
   return (Prelude.map (\bDao -> toTouple (read ((unpack . burger) bDao) :: Burger) (burgerCost bDao)) bDaos)
 
 
 selectToppingsPrices :: IO [(Topping, Double)]
 selectToppingsPrices = do
-  c <- connection
+  c     <- connection
   tDaos <- query_ c "select * from toppings"
   return (Prelude.map (\tDao -> toTouple (read ((unpack . topping) tDao) :: Topping) (toppingCost tDao)) tDaos)
 
