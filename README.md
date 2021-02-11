@@ -37,6 +37,21 @@ Before running Burger Bot we need to save our bot token in environment variable 
 export TOKEN_TELEGRAM=" *** insert bot token here *** "
 ```
 
+Now we are ready
+
+To run the Burger bot run:
+
+```
+stack exec burger-bot
+```
+
+To deploy the we application run:
+
+```
+stack exec web-app
+```
+
+
 ## Some link's that where usefull to code this proyect 
 
 * https://github.com/fizruk/telegram-bot-simple/
