@@ -1,6 +1,10 @@
 # Burger Bot
 
+On one of my visits to a burger restaurant in the current context of a pandemic, to reduce circulation and contact between people it was decided to take customer orders via WhatsApp. The implemented mechanism is a cool and fun way to order food, but I could not stop thinking on the employee constantly answering messages through his phone.
 
+The adopted solution requires the acquisition of at least one telephone number and a smartphone which would be used by an employee to take orders and forward them to the kitchen. Availability is essential to provide good service.
+
+I decided to take an approach by implementing a chatbot to take orders from clients. Throughout a web application employees will track pending orders and mark them as completed once delivered. 
 
 ## Getting Started
 
