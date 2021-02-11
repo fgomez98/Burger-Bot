@@ -134,7 +134,7 @@ getOrderData update =  do
 
 
 -- | Process incoming 'Telegram.Update's and turn them into 'Action's.
-handleUpdate :: Model -> Telegram.Update -> Maybe Action
+handleUpdate :: BotModel ->  Telegram.Update -> Maybe Action
 handleUpdate _model update = (parseUpdate
    $  BurgerMenu                    <$    command "menu" 
   <|> Start                         <$    command "start" 
@@ -146,7 +146,7 @@ handleUpdate _model update = (parseUpdate
 
 
 -- | Handle 'Action's.
-handleAction :: Action -> Model -> Eff Action Model
+handleAction :: Action -> BotModel ->  Eff Action BotModel
 handleAction DoNothing model = pure model
 
 handleAction Start model = model <# do 
@@ -188,7 +188,7 @@ handleAction (Confirm (Just client)) model =  model { currentBurger = Nothing, b
 				pure DoNothing
 			items -> do 
 				orderId <- liftIO (insertOrder client (map (getPrice (prices model)) (burgers model)) (burgers model))
-				replyText ("Your order it's comming to you!!\n\n" <> ppOrder model <> "\nOrder number: " <> pack (show orderId))
+				replyText ("Your order it's comming to you!!\n\n" <> ppOrder (prices model) (burgers model) <> "\nOrder number: " <> pack (show orderId))
 				pure DoNothing
 
 handleAction (Confirm Nothing) model = model <# do
@@ -204,7 +204,7 @@ handleAction (Remove item) model = case decimal item of
           pure ShowOrder
 
 handleAction ShowOrder model = model <# do 
-      replyText (ppOrder model)
+      replyText (ppOrder (prices model) (burgers model))
       pure DoNothing
 
 handleAction Help model = model <# do 
@@ -213,11 +213,11 @@ handleAction Help model = model <# do
 
 
 -- | Bot Application
-getBot :: IO (BotApp Model Action)
+getBot :: IO (BotApp BotModel Action)
 getBot = do
   burgersPrices <- selectBurgersPrices
   toppingsPrices <- selectToppingsPrices
-  let bot = BotApp  { botInitialModel = Model [] Nothing $ Prices toppingsPrices burgersPrices
+  let bot = BotApp  { botInitialModel = BotModel [] Nothing $ Prices toppingsPrices burgersPrices
                     , botAction = flip handleUpdate
                     , botHandler = handleAction
                     , botJobs = []  }

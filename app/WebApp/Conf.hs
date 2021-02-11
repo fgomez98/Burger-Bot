@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module App.Conf where
+module WebApp.Conf where
     
 import            Data.Text (Text)
 

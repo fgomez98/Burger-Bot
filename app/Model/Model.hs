@@ -22,7 +22,7 @@ data Prices = Prices {
   burgersPrices   :: [(Burger, Double)]
 } deriving (Show)
 
-data Model = Model { 
+data BotModel = BotModel { 
   burgers         :: [Burger],
   currentBurger   :: Maybe Burger,
   prices          :: Prices
@@ -37,27 +37,27 @@ data Client = Client {
 } deriving (Show, Read)
 
 
-initOrder :: Burger -> Model -> Model
+initOrder :: Burger -> BotModel -> BotModel
 initOrder burger model = model { currentBurger = Just burger }
 
 
-changeOrder :: Burger -> Model -> Model
+changeOrder :: Burger -> BotModel -> BotModel
 changeOrder b model = model { currentBurger = Just b }
 
 
-fOrder :: (Burger -> Burger) -> Model -> Model
+fOrder :: (Burger -> Burger) -> BotModel -> BotModel
 fOrder f model =  model { currentBurger = case currentBurger model of 
   Nothing -> Nothing
   Just b  -> Just (f b) } 
 
 
 -- | Adds a burger from the menu to client order
-addBurger :: Burger -> Model -> Model
+addBurger :: Burger -> BotModel -> BotModel
 addBurger burger model =  model { burgers = burgers model ++ [burger] }
 
 
 -- | removes the burger at index from the menu to client order
-removeBurger :: Int -> Model -> Model
+removeBurger :: Int -> BotModel -> BotModel
 removeBurger index model =  model { burgers = takeAt index (burgers model) }
 
 
@@ -65,10 +65,10 @@ withNewLine :: Text -> Text
 withNewLine = ( <> "\n")
 
 
-ppOrder :: Model -> Text
-ppOrder model = case foldMap (withNewLine . (\(b, i) -> pack (show i) <> ". " <> ppBurgerWithPrice (prices model) b)) (zipWith toTouple (burgers model) [1..]) of
+ppOrder :: Prices -> [Burger] -> Text
+ppOrder prices burgers = case foldMap (withNewLine . (\(b, i) -> pack (show i) <> ". " <> ppBurgerWithPrice prices b)) (zipWith toTouple burgers [1..]) of
     ""    -> "Your order is empty. Type /menu to add a burger to your order"
-    items -> "Your order:\n" <> items <> "\nTotal: $" <> pack (show (orderPrice model))
+    items -> "Your order:\n" <> items <> "\nTotal: $" <> pack (show (orderPrice prices burgers))
 
 
 data Burger =  Layer Int Topping Burger | Simple | Double | Triple | Empty deriving (Show, Eq, Read)
@@ -159,5 +159,5 @@ getPrice prices (Layer i t b) = fromIntegral i * getToppingPrice prices t + getP
 getPrice prices size = getBurgerPrice prices size
 
 
-orderPrice :: Model -> Double
-orderPrice model = sum . map (getPrice (prices model)) . burgers $ model
+orderPrice :: Prices -> [Burger] -> Double
+orderPrice prices = sum . map (getPrice prices)

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: af8fe9c3f2c378a6b9a3f9bc9b8511911f05efcbeda31663f911e0ae34acb20b
+-- hash: 3938037258a3716cfa231bf643d1d1bc3f013a53a4f93cdd28c4e51519b925cf
 
 name:           burger-bot
 version:        1.0.1
@@ -28,6 +28,8 @@ source-repository head
 
 executable burger-bot
   main-is: Bot/Bot.hs
+  other-modules:
+      Lib Model.Db Model.Model
   hs-source-dirs:
       app
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
@@ -64,7 +66,9 @@ executable burger-bot
   default-language: Haskell2010
 
 executable web-app
-  main-is: App/App.hs
+  main-is: WebApp/WebApp.hs
+  other-modules:
+      Lib Model.Db Model.Model WebApp.Conf WebApp.Views
   hs-source-dirs:
       app
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N

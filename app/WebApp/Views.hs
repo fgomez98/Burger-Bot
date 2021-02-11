@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module App.Views where
+module WebApp.Views where
 
 import            Text.Blaze.Html5 as H
 import            Text.Blaze.Html5.Attributes as A
@@ -11,7 +11,7 @@ import            Data.Text (pack, Text)
 
 import            Model.Db
 import            Model.Model
-import            App.Conf
+import            WebApp.Conf
 import            Lib
 
 
@@ -36,13 +36,13 @@ headerHTML activePendingOrder activeAllOrders = do
         H.div ! class_ "collapse navbar-collapse" ! A.id "navbarSupportedContent" $ do  
             H.ul ! class_ "navbar-nav me-auto" $ do
                 navItemHTML activePendingOrder "Pending Orders" (host <> ":" <> pack (show port))
-                navItemHTML activeAllOrders "All Orders" (host <> ":" <> pack (show port) <> "/all/")
+                navItemHTML activeAllOrders "All Orders" (host <> ":" <> pack (show port) <> "/search/")
 
 
 searchHTML :: Html
 searchHTML = do
     H.div ! A.style "display: block; text-align: center; padding: 2em;" $ do
-        H.form ! A.style " text-align: left" ! A.action (textValue (host <> ":" <> pack (show port) <> "/all/")) ! A.method "post" ! A.name "searchForm" $ do
+        H.form ! A.style " text-align: left" ! A.action (textValue (host <> ":" <> pack (show port) <> "/search/")) ! A.method "post" ! A.name "searchForm" $ do
             H.div ! class_ "form-group"  $ do
                 H.div ! class_ "form-row" $ do
                     H.div ! class_ "col" $ do
@@ -151,6 +151,9 @@ orderProductsCardHTML order burgers prices = do
     H.div ! class_ "card" $ do
         H.div ! class_ "card-body" $ do
             H.h4 ! class_ "card-title" $ toHtml $ "Order " <> pack (show (orderId order))
+            H.h6 ! class_"card-text" $ do 
+                toHtml (orderClientFirstName order <> " " <>  orderClientLastName order)
+            H.h6 ! class_"card-text" $ do toHtml . show . Model.Db.date $ order
             H.h5 ! class_"card-text" $ "Products: "
             case burgers of 
                 [] ->   H.p ! class_"card-text" $ "Empty Order"

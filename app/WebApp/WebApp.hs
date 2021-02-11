@@ -14,8 +14,8 @@ import            Data.Text.Lazy (toStrict)
 import qualified  Text.Blaze.Html.Renderer.Text as R
 import            Data.Text.Time (parseUTCTimeOrError)
 
-import            App.Views
-import            App.Conf
+import            WebApp.Views
+import            WebApp.Conf
 import            Model.Model
 import            Model.Db
 
@@ -39,7 +39,7 @@ app = do
       filterCompleted = Just False
     }
     html . toStrict $ R.renderHtml $ pendingOrdersHTML pendingOrders
-  getpost "all" $ do
+  getpost "search" $ do
     ps <- params 
     pendingOrders <- liftIO $ selectOrders $ Filters {
       filterClientId  = asInt <$> getParam "clientId" ps,
