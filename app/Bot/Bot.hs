@@ -53,9 +53,9 @@ startMessage :: Text
 startMessage = "Hi there! Welcome to Burger Life\n\n" <> commandsMessage
 
 
-orderMessage :: Burger -> Text
-orderMessage burger = "Ok, added a " 
-  <> ppBurgerWithPrice burger 
+orderMessage :: Prices -> Burger -> Text
+orderMessage prices burger = "Ok, added a " 
+  <> ppBurgerWithPrice prices burger 
   <> " to your order\n\n"
   <> commandsMessage
 
@@ -80,34 +80,34 @@ burgerMenuMessage :: Text
 burgerMenuMessage =  "Let's start your order, choose the size of your burger"
 
 
-toppingMenuMessage :: Burger -> Text 
-toppingMenuMessage b = "Let's add toppings to your: \n\n" 
-	<> ppBurgerWithPrice b
+toppingMenuMessage :: Prices -> Burger -> Text 
+toppingMenuMessage prices b = "Let's add toppings to your: \n\n" 
+	<> ppBurgerWithPrice prices b
 
 
-menuBurgerKeyboard :: Telegram.InlineKeyboardMarkup
-menuBurgerKeyboard = (Telegram.InlineKeyboardMarkup . map (\burger -> pure (actionButton (burgerEmoji burger <> pack (show burger) <> " $" <> pack (show (getBurgerPrice burger))) (AddBurger burger)))) burgerMenu
+menuBurgerKeyboard :: Prices -> Telegram.InlineKeyboardMarkup
+menuBurgerKeyboard prices = (Telegram.InlineKeyboardMarkup . map (\burger -> pure (actionButton (burgerEmoji burger <> pack (show burger) <> " $" <> pack (show (getBurgerPrice prices burger))) (AddBurger burger)))) burgerMenu
 
 
-menuSauceKeyboard :: Telegram.InlineKeyboardMarkup
-menuSauceKeyboard = Telegram.InlineKeyboardMarkup (map (\topping -> pure (actionButton (pack (show topping) <> " " <> pack (show (getToppingPrice topping) <> "$")) (AddTopping topping 1))) sauceMenu ++ [[orderBtn]])
+menuSauceKeyboard :: Prices -> Telegram.InlineKeyboardMarkup
+menuSauceKeyboard prices = Telegram.InlineKeyboardMarkup (map (\topping -> pure (actionButton (pack (show topping) <> " " <> pack (show (getToppingPrice prices topping) <> "$")) (AddTopping topping 1))) sauceMenu ++ [[orderBtn]])
 
 
-menuToppingsInlineKeyboard :: Maybe Topping -> Telegram.InlineKeyboardMarkup
-menuToppingsInlineKeyboard selected = Telegram.InlineKeyboardMarkup (
-      map (toppingInlineKeyboardButton selected) toppingMenu
+menuToppingsInlineKeyboard :: Prices -> Maybe Topping -> Telegram.InlineKeyboardMarkup
+menuToppingsInlineKeyboard prices selected = Telegram.InlineKeyboardMarkup (
+      map (toppingInlineKeyboardButton prices selected) toppingMenu
       ++ 
       [	[sauceBtn], [orderBtn] ]
       )
 
 
-toppingInlineKeyboardButton :: Maybe Topping -> Topping -> [Telegram.InlineKeyboardButton]
-toppingInlineKeyboardButton (Just selected) topping = if selected == topping then [addToppingBtn topping 1, addToppingBtn topping 2, addToppingBtn topping 3] else toppingInlineKeyboardButton Nothing topping
-toppingInlineKeyboardButton Nothing topping = [actionButton (toppingEmoji topping <> pack (show topping)) (ToppingMenu (Just topping))]
+toppingInlineKeyboardButton :: Prices -> Maybe Topping -> Topping -> [Telegram.InlineKeyboardButton]
+toppingInlineKeyboardButton prices (Just selected) topping = if selected == topping then [addToppingBtn prices topping 1, addToppingBtn prices topping 2, addToppingBtn prices topping 3] else toppingInlineKeyboardButton prices Nothing topping
+toppingInlineKeyboardButton prices Nothing topping = [actionButton (toppingEmoji topping <> pack (show topping)) (ToppingMenu (Just topping))]
   
 
-addToppingBtn :: Topping -> Int -> Telegram.InlineKeyboardButton
-addToppingBtn topping n =  actionButton (pack (show n) <> " $" <> pack (show (fromIntegral n * getToppingPrice topping))) (AddTopping topping n)
+addToppingBtn :: Prices -> Topping -> Int -> Telegram.InlineKeyboardButton
+addToppingBtn prices topping n =  actionButton (pack (show n) <> " $" <> pack (show (fromIntegral n * getToppingPrice prices topping))) (AddTopping topping n)
 
 
 sauceBtn :: Telegram.InlineKeyboardButton
@@ -127,14 +127,14 @@ undoBtn = actionButton "Undo"
 -- This allows us to know to whom (client) we are speaking 
 getOrderData :: Telegram.Update -> Maybe Client
 getOrderData update =  do 
-  msg <- Telegram.updateMessage update
-  user <- Telegram.messageFrom msg
-  lastName <- Telegram.userLastName user
+  msg       <- Telegram.updateMessage update
+  user      <- Telegram.messageFrom msg
+  lastName  <- Telegram.userLastName user
   return (Client { Model.clientId = getId user, clientFirstName = Telegram.userFirstName user, clientLastName = lastName, Model.date = posixSecondsToUTCTime (Telegram.messageDate msg)})
 
 
 -- | Process incoming 'Telegram.Update's and turn them into 'Action's.
-handleUpdate :: Model -> Telegram.Update -> Maybe Action
+handleUpdate :: BotModel ->  Telegram.Update -> Maybe Action
 handleUpdate _model update = (parseUpdate
    $  BurgerMenu                    <$    command "menu" 
   <|> Start                         <$    command "start" 
@@ -146,7 +146,7 @@ handleUpdate _model update = (parseUpdate
 
 
 -- | Handle 'Action's.
-handleAction :: Action -> Model -> Eff Action Model
+handleAction :: Action -> BotModel ->  Eff Action BotModel
 handleAction DoNothing model = pure model
 
 handleAction Start model = model <# do 
@@ -155,19 +155,19 @@ handleAction Start model = model <# do
 
 handleAction BurgerMenu model = model <# do 
       replyOrEdit (toEditMessage burgerMenuMessage )
-        {  editMessageReplyMarkup = Just $ Telegram.SomeInlineKeyboardMarkup menuBurgerKeyboard }
+        {  editMessageReplyMarkup = Just $ Telegram.SomeInlineKeyboardMarkup (menuBurgerKeyboard (prices model))}
       pure DoNothing   
 
 handleAction (ToppingMenu selected) model = model <# do
       let Just b = currentBurger model
-      editUpdateMessage (toEditMessage (toppingMenuMessage b)) 
-        {  editMessageReplyMarkup = Just $ Telegram.SomeInlineKeyboardMarkup (menuToppingsInlineKeyboard selected) }
+      editUpdateMessage (toEditMessage (toppingMenuMessage (prices model) b)) 
+        {  editMessageReplyMarkup = Just $ Telegram.SomeInlineKeyboardMarkup (menuToppingsInlineKeyboard (prices model) selected) }
       pure DoNothing
 
 handleAction SauceMenu model = model <# do
       let Just b = currentBurger model
-      editUpdateMessage (toEditMessage (toppingMenuMessage b)) 
-        {  editMessageReplyMarkup = Just $ Telegram.SomeInlineKeyboardMarkup menuSauceKeyboard }
+      editUpdateMessage (toEditMessage (toppingMenuMessage (prices model) b)) 
+        {  editMessageReplyMarkup = Just $ Telegram.SomeInlineKeyboardMarkup (menuSauceKeyboard (prices model))}
       pure DoNothing
 
 handleAction (AddBurger burger) model = initOrder burger model <# do
@@ -178,17 +178,17 @@ handleAction (AddTopping topping amount) model = fOrder (\b -> add b topping amo
 
 handleAction Order model = let Just b = currentBurger model in 
       addBurger b model <# do
-      editUpdateMessage (toEditMessage (orderMessage b)) 
+      editUpdateMessage (toEditMessage (orderMessage (prices model) b)) 
       pure DoNothing
 
-handleAction (Confirm (Just client)) model = Model [] Nothing  <#
+handleAction (Confirm (Just client)) model =  model { currentBurger = Nothing, burgers = [] }  <#
 		case burgers model of 
-			[] -> do 
+			[]    -> do 
 				replyText "Your order is empty. Type /menu to add a burger to your order"
 				pure DoNothing
 			items -> do 
-				orderId <- liftIO (insertOrder client (burgers model))
-				replyText ("Your order it's comming to you, order number: " <> pack (show orderId))
+				orderId <- liftIO (insertOrder client (map (getPrice (prices model)) (burgers model)) (burgers model))
+				replyText ("Your order it's comming to you!!\n\n" <> ppOrder (prices model) (burgers model) <> "\nOrder number: " <> pack (show orderId))
 				pure DoNothing
 
 handleAction (Confirm Nothing) model = model <# do
@@ -196,7 +196,7 @@ handleAction (Confirm Nothing) model = model <# do
       pure DoNothing      
 
 handleAction (Remove item) model = case decimal item of 
-        Left _ -> model <# do 
+        Left _          -> model <# do 
           replyText "Plese enter a number.\n Usage: /remove <number>"
           pure DoNothing    
         Right (index,_) -> removeBurger (index-1) model <# do
@@ -204,7 +204,7 @@ handleAction (Remove item) model = case decimal item of
           pure ShowOrder
 
 handleAction ShowOrder model = model <# do 
-      replyText (ppOrder model)
+      replyText (ppOrder (prices model) (burgers model))
       pure DoNothing
 
 handleAction Help model = model <# do 
@@ -213,18 +213,21 @@ handleAction Help model = model <# do
 
 
 -- | Bot Application
-bot :: BotApp Model Action
-bot = BotApp
-  { botInitialModel = Model [] Nothing 
-  , botAction = flip handleUpdate
-  , botHandler = handleAction
-  , botJobs = []
-  }
+getBot :: IO (BotApp BotModel Action)
+getBot = do
+  burgersPrices <- selectBurgersPrices
+  toppingsPrices <- selectToppingsPrices
+  let bot = BotApp  { botInitialModel = BotModel [] Nothing $ Prices toppingsPrices burgersPrices
+                    , botAction = flip handleUpdate
+                    , botHandler = handleAction
+                    , botJobs = []  }
+  return bot                    
 
 
 -- | Run bot with a given 'Telegram.Token'.
 run :: Telegram.Token -> IO ()
 run token = do
+  bot <- getBot
   env <- Telegram.defaultTelegramClientEnv token
   startBot_ (traceBotDefault (conversationBot Telegram.updateChatId bot)) env
 

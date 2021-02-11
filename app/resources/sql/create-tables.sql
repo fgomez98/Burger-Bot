@@ -24,7 +24,8 @@ create table if not exists orders
     orderId     serial primary key,
     clientId    integer not null,
     date        timestamp with time zone not null,
-    completed   boolean default false
+    completed   boolean default false,
+    foreign key (clientId) references clients (clientId),
 );
 
 create table if not exists products

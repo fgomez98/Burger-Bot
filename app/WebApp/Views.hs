@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module App.Views where
+module WebApp.Views where
 
 import            Text.Blaze.Html5 as H
 import            Text.Blaze.Html5.Attributes as A
@@ -11,7 +11,7 @@ import            Data.Text (pack, Text)
 
 import            Model.Db
 import            Model.Model
-import            App.Conf
+import            WebApp.Conf
 import            Lib
 
 
@@ -36,13 +36,13 @@ headerHTML activePendingOrder activeAllOrders = do
         H.div ! class_ "collapse navbar-collapse" ! A.id "navbarSupportedContent" $ do  
             H.ul ! class_ "navbar-nav me-auto" $ do
                 navItemHTML activePendingOrder "Pending Orders" (host <> ":" <> pack (show port))
-                navItemHTML activeAllOrders "All Orders" (host <> ":" <> pack (show port) <> "/all/")
+                navItemHTML activeAllOrders "All Orders" (host <> ":" <> pack (show port) <> "/search/")
 
 
 searchHTML :: Html
 searchHTML = do
     H.div ! A.style "display: block; text-align: center; padding: 2em;" $ do
-        H.form ! A.style " text-align: left" ! A.action (textValue (host <> ":" <> pack (show port) <> "/all/")) ! A.method "post" ! A.name "searchForm" $ do
+        H.form ! A.style " text-align: left" ! A.action (textValue (host <> ":" <> pack (show port) <> "/search/")) ! A.method "post" ! A.name "searchForm" $ do
             H.div ! class_ "form-group"  $ do
                 H.div ! class_ "form-row" $ do
                     H.div ! class_ "col" $ do
@@ -84,10 +84,10 @@ pendingOrdersHTML orders = H.html $ do
   ordersDaoTableHTML orders   
 
 
-orderProductsHTML :: OrderDao -> [Burger] -> Html
-orderProductsHTML order burgers = H.html $ do
+orderProductsHTML :: OrderDao -> [Burger] -> Prices -> Html
+orderProductsHTML order burgers prices = H.html $ do
   headerHTML False False
-  orderProductsCardHTML order burgers
+  orderProductsCardHTML order burgers prices
 
 
 ordersDaoTableRowHTML :: OrderDao -> Html
@@ -125,11 +125,11 @@ ordersDaoTableHTML os = do
         H.tbody $ forM_ os ordersDaoTableRowHTML
 
 
-burgerListItemHTML:: Burger -> Html
-burgerListItemHTML burger = do
+burgerListItemHTML :: Prices -> Burger ->  Html
+burgerListItemHTML prices burger = do
     H.li ! class_ "list-group-item" $ do
         H.span ! class_"badge" $ do 
-            toHtml (getPrice burger)
+            toHtml (getPrice prices burger)
             " $ "
         toHtml (ppBurger burger)
 
@@ -146,16 +146,19 @@ completedHTML = do
         H.label ! class_ "btn btn-success disabled no-click my-2 my-sm-0" $ "Order Completed"                    
 
 
-orderProductsCardHTML :: OrderDao -> [Burger] -> Html
-orderProductsCardHTML order burgers = do
+orderProductsCardHTML :: OrderDao -> [Burger] -> Prices -> Html
+orderProductsCardHTML order burgers prices = do
     H.div ! class_ "card" $ do
         H.div ! class_ "card-body" $ do
             H.h4 ! class_ "card-title" $ toHtml $ "Order " <> pack (show (orderId order))
+            H.h6 ! class_"card-text" $ do 
+                toHtml (orderClientFirstName order <> " " <>  orderClientLastName order)
+            H.h6 ! class_"card-text" $ do toHtml . show . Model.Db.date $ order
             H.h5 ! class_"card-text" $ "Products: "
             case burgers of 
                 [] ->   H.p ! class_"card-text" $ "Empty Order"
                 bs ->   H.ul ! class_ "list-group" $ do
-                    forM_ bs burgerListItemHTML
+                    forM_ bs (burgerListItemHTML prices)
                     if completed order
                         then completedHTML
                         else completedActionHTML order

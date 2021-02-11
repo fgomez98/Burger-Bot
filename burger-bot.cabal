@@ -4,29 +4,32 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 08125c65008c723528159a76cbf5eed7fb4a69d01fd46a0d53d9ebce44312734
+-- hash: 3938037258a3716cfa231bf643d1d1bc3f013a53a4f93cdd28c4e51519b925cf
 
 name:           burger-bot
 version:        1.0.1
 synopsis:       Telegram bot for ordering burgers.
-description:    Please see the README on Github at <https://github.com/username/repo#readme>
+description:    Please see the README on Github at <https://github.com/fgomez98/Burger-Bot#readme>
 category:       Bot
-homepage:       https://github.com/username/repo#readme
-bug-reports:    https://github.com/username/repo/issues
+homepage:       https://github.com/fgomez98/Burger-Bot#readme
+bug-reports:    https://github.com/fgomez98/Burger-Bot/issues
 author:         Fermin Gomez
 maintainer:     fgomez@itba.edu.ar
 copyright:      Fermin Gomez
-license:        BSD3
+license:        MIT
+license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md
 
 source-repository head
   type: git
-  location: https://github.com/username/repo
+  location: https://github.com/fgomez98/Burger-Bot
 
 executable burger-bot
   main-is: Bot/Bot.hs
+  other-modules:
+      Lib Model.Db Model.Model
   hs-source-dirs:
       app
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
@@ -63,7 +66,9 @@ executable burger-bot
   default-language: Haskell2010
 
 executable web-app
-  main-is: App/App.hs
+  main-is: WebApp/WebApp.hs
+  other-modules:
+      Lib Model.Db Model.Model WebApp.Conf WebApp.Views
   hs-source-dirs:
       app
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N

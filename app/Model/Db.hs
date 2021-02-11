@@ -23,24 +23,26 @@ import           Lib
 
 
 data BurgerDao = BurgerDao {
-    burger :: Text
+    burger  :: Text,
+    burgerCost    :: Double
 } deriving (Show)
 
 instance FromRow BurgerDao where
-  fromRow = BurgerDao <$> field
+  fromRow = BurgerDao <$> field <*> field
 
 instance ToRow BurgerDao where
-  toRow d = [toField (burger d)]
+  toRow d = [toField (burger d), toField (burgerCost d)]
 
 data ToppingDao = ToppingDao {
-    topping :: Text
+    topping         :: Text,
+    toppingCost     :: Double
 } deriving (Show)
 
 instance FromRow ToppingDao where
-  fromRow = ToppingDao <$> field
+  fromRow = ToppingDao <$> field <*> field
 
 instance ToRow ToppingDao where
-  toRow d = [toField (topping d)]
+  toRow d = [toField (topping d), toField (toppingCost d)]
 
 data ClientDao = ClientDao {
     clientId    :: Int,
@@ -142,12 +144,12 @@ insertClient client = do
 
 
 -- | registers an order from a client, returns orderId
-insertOrder :: Client -> [Burger] -> IO Int
-insertOrder client burgers = do
+insertOrder :: Client -> [Double] -> [Burger] -> IO Int
+insertOrder client burgersPrices burgers = do
   clientId <- insertClient client
   productsIds <- mapM insertBurger burgers
-  let productsPrice = Prelude.zip productsIds (Prelude.map getPrice burgers)
-  c <- connection
+  let productsPrice = Prelude.zip productsIds burgersPrices
+  c      <- connection
   result <- (query c "INSERT INTO orders (clientId, date) VALUES (?, ?) RETURNING orderid" 
             $ OrderDao {  clientId_order  = clientId,
                           Model.Db.date   = Model.date client }      
@@ -171,8 +173,9 @@ completeOrder orderId = do
 
 
 -- | I just wanted to change function name 
-foldQuery :: Connection -> Query -> Only Int -> a -> (a -> Only Int -> IO a) -> IO a
+foldQuery :: (FromRow row, ToRow params) => Connection -> Query -> params -> a -> (a -> row -> IO a) -> IO a
 foldQuery = fold
+
 
 data Filters = Filters {
     filterClientId  :: Maybe Int,
@@ -183,8 +186,10 @@ data Filters = Filters {
     filterCompleted :: Maybe Bool
 } deriving (Show)
 
+
 defaultFilters :: Filters
 defaultFilters = Filters Nothing Nothing Nothing Nothing Nothing Nothing
+
 
 -- | get all orders that match arguments
 selectOrders :: Filters -> IO [OrderDao]
@@ -231,8 +236,8 @@ selectOrder orderId = do
             \JOIN clients AS c ON o.clientid = c.clientid \
             \WHERE o.orderid = ? \
             \GROUP BY o.orderid, c.clientid, date, completed, firstname, lastname "
-  c <- connection  
-  result <- query c q $ Only orderId
+  c       <- connection  
+  result  <- query c q $ Only orderId
   return (Prelude.head result)
 
 
@@ -253,9 +258,9 @@ selectProducts orderId = do
 foldProductsConsumer :: [Burger] -> Only Int -> IO [Burger]
 foldProductsConsumer acc row = do
   let productId = fromOnly row
-  c <- connection
-  pDaos <- (query c "SELECT * FROM products WHERE productid = ?" $ Only productId :: IO [ProductDao])
-  ptDaos <- (query c "SELECT * FROM products_toppings WHERE productid = ?" $ Only productId :: IO [ProductToppingDao])
+  c       <- connection
+  pDaos   <- (query c "SELECT * FROM products WHERE productid = ?" $ Only productId :: IO [ProductDao])
+  ptDaos  <- (query c "SELECT * FROM products_toppings WHERE productid = ?" $ Only productId :: IO [ProductToppingDao])
   return (burgerFrom (Prelude.head pDaos) ptDaos : acc)
 
 
@@ -264,16 +269,18 @@ burgerFrom pDao = Prelude.foldr
   (\ptDao burger -> Layer (amount ptDao) (read ((unpack . topping_productTopping) ptDao) :: Topping) burger) (read ((unpack . burger_product) pDao) :: Burger)
 
 
-selectBurgerPrice :: Burger -> IO Double
-selectBurgerPrice burger = do
-  c <- connection
-  fromOnly . Prelude.head <$> (query c "select cost from burgers where burger = ?" $ Only (show burger) :: IO [Only Double])
+selectBurgersPrices :: IO [(Burger, Double)]
+selectBurgersPrices = do
+  c     <- connection
+  bDaos <- query_ c "select * from burgers"
+  return (Prelude.map (\bDao -> toTouple (read ((unpack . burger) bDao) :: Burger) (burgerCost bDao)) bDaos)
 
 
-selectToppingPrice :: Topping -> IO Double
-selectToppingPrice topping = do
-  c <- connection
-  fromOnly . Prelude.head <$> (query c "select cost from toppings where topping = ?" $ Only (show topping) :: IO [Only Double])
+selectToppingsPrices :: IO [(Topping, Double)]
+selectToppingsPrices = do
+  c     <- connection
+  tDaos <- query_ c "select * from toppings"
+  return (Prelude.map (\tDao -> toTouple (read ((unpack . topping) tDao) :: Topping) (toppingCost tDao)) tDaos)
 
 
 -- | Connection to postgresql database
