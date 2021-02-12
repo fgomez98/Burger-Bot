@@ -4,7 +4,7 @@ On one of my visits to a burger restaurant in the current context of a pandemic,
 
 The adopted solution requires the acquisition of at least one telephone number and a smartphone which would be used by an employee to take orders and forward them to the kitchen. Availability is essential to provide good service.
 
-I decided to take an approach by implementing a chatbot to take orders from clients. Throughout a web application employees will be able to track pending orders and mark them as completed once delivered. 
+I decided to take an approach by implementing a chatbot to take orders from clients. Through a web application employees will be able to track pending orders and mark them as completed once delivered. 
 
 ## Getting Started
 
