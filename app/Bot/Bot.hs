@@ -41,7 +41,8 @@ data Action
 
 commandsMessage :: Text
 commandsMessage = Text.unlines
-	[ "- Use /menu to choose something from the menu" 
+	[ "- Use /start to start a new order" 
+  , "- Use /menu to choose something from the menu" 
 	, "- Use /remove <number> to remove an item from your order"
  	, "- Use /show to show your order"
  	, "- Use /confirm to confirm and send your order, don't forget to review it before"
@@ -119,8 +120,8 @@ orderBtn = actionButton "Order" Order
 
 
 -- | tirggers previus action >>>>==== TODO ====<<<<
-undoBtn :: Action -> Telegram.InlineKeyboardButton
-undoBtn = actionButton "Undo"
+undoBtn :: Telegram.InlineKeyboardButton
+undoBtn = actionButton "Undo" DoNothing
 
 
 -- | Auxiliar function to retrive message sender data from telegram-bot-simple library. 
@@ -149,7 +150,7 @@ handleUpdate _model update = (parseUpdate
 handleAction :: Action -> BotModel ->  Eff Action BotModel
 handleAction DoNothing model = pure model
 
-handleAction Start model = model <# do 
+handleAction Start model = model { currentBurger = Nothing, burgers = [] } <# do 
       replyText startMessage
       pure DoNothing
 

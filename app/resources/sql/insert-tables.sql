@@ -3,6 +3,7 @@ INSERT INTO burgers (burger, cost) VALUES
 ('Double', 7.0),
 ('Triple', 9.0)
 ON CONFLICT DO NOTHING;
+
 INSERT INTO toppings(topping, cost) VALUES 
 ('Tomato', 1.0),
 ('Cheese', 2.0),

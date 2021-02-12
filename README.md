@@ -4,7 +4,7 @@ On one of my visits to a burger restaurant in the current context of a pandemic,
 
 The adopted solution requires the acquisition of at least one telephone number and a smartphone which would be used by an employee to take orders and forward them to the kitchen. Availability is essential to provide good service.
 
-I decided to take an approach by implementing a chatbot to take orders from clients. Throughout a web application employees will track pending orders and mark them as completed once delivered. 
+I decided to take an approach by implementing a chatbot to take orders from clients. Throughout a web application employees will be able to track pending orders and mark them as completed once delivered. 
 
 ## Getting Started
 
@@ -31,11 +31,19 @@ We need a few dependency libraries installed. To install dependencies and build 
 stack build
 ```
 
-Before running Burger Bot we need to save our bot token in environment variable TOKEN_TELEGRAM
+We need to set up postgreSQL data base to persist data. Use app/resources/sql/init-db.sql file.
+
+Before running Burger Bot we need to set up some environment variables.
 
 ```
 export TOKEN_TELEGRAM=" *** insert bot token here *** "
+DB_NAME="telegram_bot_db"
+DB_HOST="localhost"
+DB_USER=" *** insert db user here *** 
+DB_PASSWD=" *** insert db password here *** 
 ```
+
+We will be using postgreSQL 5432 default port.
 
 Now we are ready
 
@@ -50,7 +58,6 @@ To deploy the we application run:
 ```
 stack exec web-app
 ```
-
 
 ## Some link's that where usefull to code this proyect 
 

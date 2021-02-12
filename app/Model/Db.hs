@@ -13,7 +13,9 @@ import           Database.PostgreSQL.Simple
 import           Database.PostgreSQL.Simple.FromRow
 import           Database.PostgreSQL.Simple.ToField
 import           Database.PostgreSQL.Simple.ToRow ( ToRow(toRow) )
-
+import           Control.Monad (void)
+import           Configuration.Dotenv
+import           System.Environment                  (getEnv)
 import           Model.Model as Model
 import           Lib
 
@@ -285,9 +287,18 @@ selectToppingsPrices = do
 
 -- | Connection to postgresql database
 connection :: IO Connection
-connection = connect
+connection = do 
+  void $ loadFile defaultConfig
+  dbName    <- getEnv "DB_NAME"
+  dbUser    <- getEnv "DB_USER"
+  dbPasswd  <- getEnv "DB_PASSWD"
+  dbHost    <- getEnv "DB_HOST"
+  -- dbPort    <- getEnv "DB-PORT"
+  connect
       defaultConnectInfo
-      { connectHost = "localhost"
-      , connectDatabase = "telegram_bot_db"
-      , connectUser = "fermingomez"
+      { connectHost     = dbHost
+      , connectDatabase = dbName
+      , connectUser     = dbUser
+      -- , connectPort     = dbPort
+      ,connectPassword  = dbPasswd
       }
