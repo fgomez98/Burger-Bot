@@ -37,15 +37,15 @@ Before running Burger Bot we need to set up some environment variables.
 
 ```
 export TOKEN_TELEGRAM=" *** insert bot token here *** "
-DB_NAME="telegram_bot_db"
-DB_HOST="localhost"
-DB_USER=" *** insert db user here *** 
-DB_PASSWD=" *** insert db password here *** 
+export DB_NAME="telegram_bot_db"
+export DB_HOST="localhost"
+export DB_USER=" *** insert db user here *** 
+export DB_PASSWD=" *** insert db password here *** 
 ```
 
-We will be using postgreSQL 5432 default port.
+We will be using postgreSQL 5432 as default port.
 
-Now we are ready
+Now we are ready.
 
 To run the Burger bot run:
 
