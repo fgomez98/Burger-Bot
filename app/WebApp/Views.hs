@@ -28,11 +28,11 @@ navItemHTML False label ref = do
 headerHTML :: Bool -> Bool -> Html
 headerHTML activePendingOrder activeAllOrders = do
     H.head $ do
-        H.title "Burger Life"
+        H.title "Burger Bot"
         H.link ! A.rel "stylesheet" ! A.href "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         H.link ! A.href "https://fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic,700italic" ! A.rel "stylesheet" ! A.type_ "text/css"
     H.nav ! class_ "navbar navbar-expand-lg navbar-light bg-light" $ do
-        H.a ! A.style "font-size: 28px" ! class_ "navbar-brand" $ "Burger Life"
+        H.a ! A.style "font-size: 28px" ! class_ "navbar-brand" $ "Burger Bot"
         H.div ! class_ "collapse navbar-collapse" ! A.id "navbarSupportedContent" $ do  
             H.ul ! class_ "navbar-nav me-auto" $ do
                 navItemHTML activePendingOrder "Pending Orders" (host <> ":" <> pack (show port))

@@ -50,7 +50,7 @@ commandsMessage = Text.unlines
 
 -- | A help message to show on conversation start with bot.
 startMessage :: Text
-startMessage = "Hi there! Welcome to Burger Life\n\n" <> commandsMessage
+startMessage = "Hi there! Welcome to Burger Bot\n\n" <> commandsMessage
 
 
 orderMessage :: Prices -> Burger -> Text
