@@ -200,7 +200,7 @@ handleAction (Remove item) model = case decimal item of
           replyText "Plese enter a number.\n Usage: /remove <number>"
           pure DoNothing    
         Right (index,_) -> removeBurger (index-1) model <# do
-          replyText "removed"
+          replyText "Removed"
           pure ShowOrder
 
 handleAction ShowOrder model = model <# do 
