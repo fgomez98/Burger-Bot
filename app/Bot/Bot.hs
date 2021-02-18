@@ -163,17 +163,21 @@ handleAction BurgerMenu model = model <# do
         {  editMessageReplyMarkup = Just $ Telegram.SomeInlineKeyboardMarkup (menuBurgerKeyboard (prices model))}
       pure DoNothing   
 
-handleAction (ToppingMenu selected) model = model <# do
-      let Just b = currentBurger model
-      editUpdateMessage (toEditMessage (toppingMenuMessage (prices model) b)) 
-        {  editMessageReplyMarkup = Just $ Telegram.SomeInlineKeyboardMarkup (menuToppingsInlineKeyboard (prices model) selected) }
-      pure DoNothing
+handleAction (ToppingMenu selected) model = case currentBurger model of 
+      Nothing   ->  model <# do 
+        pure BurgerMenu
+      (Just b)  ->  model <# do 
+        editUpdateMessage (toEditMessage (toppingMenuMessage (prices model) b)) 
+          {  editMessageReplyMarkup = Just $ Telegram.SomeInlineKeyboardMarkup (menuToppingsInlineKeyboard (prices model) selected) }
+        pure DoNothing
 
-handleAction SauceMenu model = model <# do
-      let Just b = currentBurger model
-      editUpdateMessage (toEditMessage (toppingMenuMessage (prices model) b)) 
-        {  editMessageReplyMarkup = Just $ Telegram.SomeInlineKeyboardMarkup (menuSauceKeyboard (prices model))}
-      pure DoNothing
+handleAction SauceMenu model = case currentBurger model of 
+      Nothing   ->  model <# do
+        pure BurgerMenu
+      (Just b)  ->  model <# do
+        editUpdateMessage (toEditMessage (toppingMenuMessage (prices model) b)) 
+          {  editMessageReplyMarkup = Just $ Telegram.SomeInlineKeyboardMarkup (menuSauceKeyboard (prices model))}
+        pure DoNothing
 
 handleAction (AddBurger burger) model = execState (initBurger burger) model <# do
       pure (ToppingMenu Nothing)
@@ -181,10 +185,12 @@ handleAction (AddBurger burger) model = execState (initBurger burger) model <# d
 handleAction (AddTopping topping amount) model = execState (addTopping topping amount) model <# do
       pure (ToppingMenu Nothing)
 
-handleAction Order model = let Just b = currentBurger model in 
-      execState (addToOrder b) model <# do
-      editUpdateMessage (toEditMessage (orderMessage (prices model) b)) 
-      pure DoNothing
+handleAction Order model = case currentBurger model of 
+      Nothing   ->  model <# do
+        pure BurgerMenu
+      (Just b)  ->  execState (addToOrder b) model <# do
+        editUpdateMessage (toEditMessage (orderMessage (prices model) b)) 
+        pure DoNothing
 
 handleAction (Confirm (Just client)) model = execState emptyOrder model  <#
 		case burgers model of 
@@ -218,7 +224,7 @@ handleAction Help model = model <# do
 
 handleAction Undo model = let (burger, model') = runState undo model in
     case burger of 
-      Layer {} -> model' <# pure (ToppingMenu Nothing)
+      Just Layer {} -> model' <# pure (ToppingMenu Nothing)
       _ ->  model' <# pure BurgerMenu
 
 

@@ -5,9 +5,6 @@ module Model.Db where
 import           Data.Text
 import           Data.Maybe
 import           Data.List
-import           Data.Monoid
-import           Data.Int(Int64)
-import           Control.Monad.Trans              (liftIO)
 import           Data.Time.Clock
 import           Database.PostgreSQL.Simple
 import           Database.PostgreSQL.Simple.FromRow

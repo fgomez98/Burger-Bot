@@ -1,15 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Model.Burger where
-    
-import           GHC.Int (Int32)
 import           Data.Text                        (Text, pack)
-import qualified Data.Text                        as Text
-import           Data.Time
-import           Data.Time.Clock
-import           Data.Time.Clock.POSIX
 
-import Lib
 
 data Burger =  Layer Int Topping Burger | Simple | Double | Triple | Empty deriving (Show, Eq, Read)
 data Topping = Tomato | Cheese | Egg | Onion | Bacon |Lettuce | Pickle | Mushroom | Mayo | Ketchup | Mustard  deriving (Show, Eq, Read)

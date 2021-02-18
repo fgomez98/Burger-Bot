@@ -5,6 +5,8 @@ module WebApp.Views where
 import            Text.Blaze.Html5 as H
 import            Text.Blaze.Html5.Attributes as A
 import            Prelude hiding (head, id, div)
+import Data.Time ( addUTCTime )
+import Data.Time.Format.ISO8601 ( iso8601Show )
 import            Text.Blaze.Html
 import            Control.Monad
 import            Data.Text (pack, Text)
@@ -97,7 +99,7 @@ ordersDaoTableRowHTML order = do
         H.th $ toHtml (clientId_order order)
         H.td $ toHtml (orderClientFirstName order)
         H.td $ toHtml (orderClientLastName order)
-        H.td $ toHtml (show $ Model.Db.date order)
+        H.td $ toHtml (iso8601Show $ addUTCTime (- 180 * 60) $ Model.Db.date order) 
         H.td $ toHtml (cost order)
         H.td $ if completed order
             then "Yes"
@@ -153,7 +155,7 @@ orderProductsCardHTML order burgers prices = do
             H.h4 ! class_ "card-title" $ toHtml $ "Order " <> pack (show (orderId order))
             H.h6 ! class_"card-text" $ do 
                 toHtml (orderClientFirstName order <> " " <>  orderClientLastName order)
-            H.h6 ! class_"card-text" $ do toHtml . show . Model.Db.date $ order
+            H.h6 ! class_"card-text" $ do toHtml . iso8601Show . addUTCTime (- 180 * 60) . Model.Db.date  $ order
             H.h5 ! class_"card-text" $ "Products: "
             case burgers of 
                 [] ->   H.p ! class_"card-text" $ "Empty Order"
