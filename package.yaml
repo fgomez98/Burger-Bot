@@ -58,7 +58,7 @@ executables:
   burger-bot:
     source-dirs: app
     main: Bot/Bot.hs
-    other-modules:       [Lib Model.Db Model.Model]
+    other-modules:       [Lib Model.Db Model.Burger Model.BotModel]
     ghc-options:
       - -threaded
       - -rtsopts
@@ -66,7 +66,7 @@ executables:
   web-app:
     source-dirs: app
     main: WebApp/WebApp.hs
-    other-modules:       [Lib Model.Db Model.Model WebApp.Conf WebApp.Views]
+    other-modules:       [Lib Model.Db Model.Burger Model.BotModel WebApp.Conf WebApp.Views]
     ghc-options:
       - -threaded
       - -rtsopts

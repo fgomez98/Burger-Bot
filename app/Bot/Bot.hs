@@ -10,6 +10,7 @@ import           Data.Text.Read
 import           Data.Time
 import           Data.Time.Clock
 import           Data.Time.Clock.POSIX
+import           Control.Monad.State
 import qualified Telegram.Bot.API                 as Telegram
 import           Telegram.Bot.Simple
 import           Telegram.Bot.Simple.Debug
@@ -19,7 +20,8 @@ import           Control.Monad (void)
 import           Configuration.Dotenv
 
 import           Lib
-import           Model.Model as Model
+import           Model.Burger
+import           Model.BotModel as BotModel
 import           Model.Db as Db
 
 
@@ -36,7 +38,8 @@ data Action
   | Remove Text -- Removes a burger from the order
   | ShowOrder -- Shows burgers on the order
   | Help -- Shows help message to the user
-	deriving (Show, Read)
+  | Undo -- Undo's an action of AddTopping or AddBurger
+    deriving (Show, Read)
 
 
 commandsMessage :: Text
@@ -48,6 +51,7 @@ commandsMessage = Text.unlines
  	, "- Use /confirm to confirm and send your order, don't forget to review it before"
  	, ""
 	]
+
 
 -- | A help message to show on conversation start with bot.
 startMessage :: Text
@@ -98,7 +102,7 @@ menuToppingsInlineKeyboard :: Prices -> Maybe Topping -> Telegram.InlineKeyboard
 menuToppingsInlineKeyboard prices selected = Telegram.InlineKeyboardMarkup (
       map (toppingInlineKeyboardButton prices selected) toppingMenu
       ++ 
-      [	[sauceBtn], [orderBtn] ]
+      [	[sauceBtn], [undoBtn], [orderBtn] ]
       )
 
 
@@ -121,7 +125,7 @@ orderBtn = actionButton "Order" Order
 
 -- | tirggers previus action >>>>==== TODO ====<<<<
 undoBtn :: Telegram.InlineKeyboardButton
-undoBtn = actionButton "Undo" DoNothing
+undoBtn = actionButton "Undo" Undo
 
 
 -- | Auxiliar function to retrive message sender data from telegram-bot-simple library. 
@@ -131,7 +135,7 @@ getOrderData update =  do
   msg       <- Telegram.updateMessage update
   user      <- Telegram.messageFrom msg
   lastName  <- Telegram.userLastName user
-  return (Client { Model.clientId = getId user, clientFirstName = Telegram.userFirstName user, clientLastName = lastName, Model.date = posixSecondsToUTCTime (Telegram.messageDate msg)})
+  return (Client { BotModel.clientId = getId user, clientFirstName = Telegram.userFirstName user, clientLastName = lastName, BotModel.date = posixSecondsToUTCTime (Telegram.messageDate msg)})
 
 
 -- | Process incoming 'Telegram.Update's and turn them into 'Action's.
@@ -150,7 +154,7 @@ handleUpdate _model update = (parseUpdate
 handleAction :: Action -> BotModel ->  Eff Action BotModel
 handleAction DoNothing model = pure model
 
-handleAction Start model = model { currentBurger = Nothing, burgers = [] } <# do 
+handleAction Start model = execState emptyOrder model <# do 
       replyText startMessage
       pure DoNothing
 
@@ -171,18 +175,18 @@ handleAction SauceMenu model = model <# do
         {  editMessageReplyMarkup = Just $ Telegram.SomeInlineKeyboardMarkup (menuSauceKeyboard (prices model))}
       pure DoNothing
 
-handleAction (AddBurger burger) model = initOrder burger model <# do
+handleAction (AddBurger burger) model = execState (initBurger burger) model <# do
       pure (ToppingMenu Nothing)
 
-handleAction (AddTopping topping amount) model = fOrder (\b -> add b topping amount) model <# do
+handleAction (AddTopping topping amount) model = execState (addTopping topping amount) model <# do
       pure (ToppingMenu Nothing)
 
 handleAction Order model = let Just b = currentBurger model in 
-      addBurger b model <# do
+      execState (addToOrder b) model <# do
       editUpdateMessage (toEditMessage (orderMessage (prices model) b)) 
       pure DoNothing
 
-handleAction (Confirm (Just client)) model =  model { currentBurger = Nothing, burgers = [] }  <#
+handleAction (Confirm (Just client)) model = execState emptyOrder model  <#
 		case burgers model of 
 			[]    -> do 
 				replyText "Your order is empty. Type /menu to add a burger to your order"
@@ -198,9 +202,9 @@ handleAction (Confirm Nothing) model = model <# do
 
 handleAction (Remove item) model = case decimal item of 
         Left _          -> model <# do 
-          replyText "Plese enter a number.\n Usage: /remove <number>"
+          replyText "Plese enter a number.\nUsage: /remove <number>"
           pure DoNothing    
-        Right (index,_) -> removeBurger (index-1) model <# do
+        Right (index,_) -> execState (removeFromOrder (index-1)) model <# do
           replyText "Removed"
           pure ShowOrder
 
@@ -212,13 +216,18 @@ handleAction Help model = model <# do
       replyText helpMessage
       pure DoNothing   
 
+handleAction Undo model = let (burger, model') = runState undo model in
+    case burger of 
+      Layer {} -> model' <# pure (ToppingMenu Nothing)
+      _ ->  model' <# pure BurgerMenu
+
 
 -- | Bot Application
 getBot :: IO (BotApp BotModel Action)
 getBot = do
   burgersPrices <- selectBurgersPrices
   toppingsPrices <- selectToppingsPrices
-  let bot = BotApp  { botInitialModel = BotModel [] Nothing $ Prices toppingsPrices burgersPrices
+  let bot = BotApp  { botInitialModel = BotModel [] Nothing (Prices toppingsPrices burgersPrices) []
                     , botAction = flip handleUpdate
                     , botHandler = handleAction
                     , botJobs = []  }

@@ -16,7 +16,8 @@ import           Database.PostgreSQL.Simple.ToRow ( ToRow(toRow) )
 import           Control.Monad (void)
 import           Configuration.Dotenv
 import           System.Environment                  (getEnv)
-import           Model.Model as Model
+import           Model.Burger
+import           Model.BotModel as Model
 import           Lib
 
 

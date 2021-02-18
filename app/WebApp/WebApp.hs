@@ -16,7 +16,7 @@ import            Data.Text.Time (parseUTCTimeOrError)
 
 import            WebApp.Views
 import            WebApp.Conf
-import            Model.Model
+import            Model.Burger
 import            Model.Db
 
 

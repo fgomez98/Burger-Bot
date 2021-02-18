@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Lib where
 
 import qualified Telegram.Bot.API                 as Telegram
@@ -44,3 +46,7 @@ showText = pack . show
 
 toTouple :: a -> b -> (a,b)
 toTouple a b = (a, b)
+
+
+withNewLine :: Text -> Text
+withNewLine = ( <> "\n")

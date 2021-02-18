@@ -10,7 +10,7 @@ import            Control.Monad
 import            Data.Text (pack, Text)
 
 import            Model.Db
-import            Model.Model
+import            Model.Burger
 import            WebApp.Conf
 import            Lib
 

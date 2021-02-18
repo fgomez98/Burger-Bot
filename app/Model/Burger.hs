@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Model.Model where
+module Model.Burger where
     
 import           GHC.Int (Int32)
 import           Data.Text                        (Text, pack)
@@ -11,69 +11,13 @@ import           Data.Time.Clock.POSIX
 
 import Lib
 
-data User = User { 
-  userId    :: Int32, 
-  firstName :: Text,
-  lastName  :: Text 
-} deriving (Show)
+data Burger =  Layer Int Topping Burger | Simple | Double | Triple | Empty deriving (Show, Eq, Read)
+data Topping = Tomato | Cheese | Egg | Onion | Bacon |Lettuce | Pickle | Mushroom | Mayo | Ketchup | Mustard  deriving (Show, Eq, Read)
 
 data Prices = Prices {
   toppingsPrices  :: [(Topping, Double)],
   burgersPrices   :: [(Burger, Double)]
 } deriving (Show)
-
-data BotModel = BotModel { 
-  burgers         :: [Burger],
-  currentBurger   :: Maybe Burger,
-  prices          :: Prices
-} deriving (Show)
-
-
-data Client = Client { 
-  clientId        :: Int32,
-  clientFirstName :: Text,
-  clientLastName  :: Text,
-  date            :: UTCTime
-} deriving (Show, Read)
-
-
-initOrder :: Burger -> BotModel -> BotModel
-initOrder burger model = model { currentBurger = Just burger }
-
-
-changeOrder :: Burger -> BotModel -> BotModel
-changeOrder b model = model { currentBurger = Just b }
-
-
-fOrder :: (Burger -> Burger) -> BotModel -> BotModel
-fOrder f model =  model { currentBurger = case currentBurger model of 
-  Nothing -> Nothing
-  Just b  -> Just (f b) } 
-
-
--- | Adds a burger from the menu to client order
-addBurger :: Burger -> BotModel -> BotModel
-addBurger burger model =  model { burgers = burgers model ++ [burger] }
-
-
--- | removes the burger at index from the menu to client order
-removeBurger :: Int -> BotModel -> BotModel
-removeBurger index model =  model { burgers = takeAt index (burgers model) }
-
-
-withNewLine :: Text -> Text
-withNewLine = ( <> "\n")
-
-
-ppOrder :: Prices -> [Burger] -> Text
-ppOrder prices burgers = case foldMap (withNewLine . (\(b, i) -> pack (show i) <> ". " <> ppBurgerWithPrice prices b)) (zipWith toTouple burgers [1..]) of
-    ""    -> "Your order is empty. Type /menu to add a burger to your order"
-    items -> "Your order:\n" <> items <> "\nTotal: $" <> pack (show (orderPrice prices burgers))
-
-
-data Burger =  Layer Int Topping Burger | Simple | Double | Triple | Empty deriving (Show, Eq, Read)
-data Topping = Tomato | Cheese | Egg | Onion | Bacon |Lettuce | Pickle | Mushroom | Mayo | Ketchup | Mustard  deriving (Show, Eq, Read)
-
 
 ppBurger :: Burger -> Text
 ppBurger Simple = "Simple Burger"
