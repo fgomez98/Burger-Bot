@@ -43,6 +43,7 @@ breaklines=true,        % sets automatic line breaking
 breakatwhitespace=false,    % sets if automatic breaks should only happen at whitespace
 escapeinside={\%*}{*)}          % if you want to add a comment within your code
 }
+\setlength{\parindent}{0in}
 \usepackage{titling}
 \newcommand{\subtitle}[1]{%
 	\posttitle{%
@@ -94,7 +95,7 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
 
 El contexto actual de pandemia genera una necesidad en la sociedad de reinventarse. En el caso particular de la hamburguesería Arredondo para disminuir la circulación y contacto entre personas en la sucursal se optó por tomar los pedidos de los clientes vía WhatsApp. 
 \\
-La solución adoptada necesita de la adquisición de por lo menos un número telefónico y un smartphone, el cual sería utilizado por un empleado para tomar los pedidos y hacer entrega de la comanda a la cocina. La disponibilidad del mismo es esencial para brindar un buen servicio. 
+La solución adoptada necesita de la adquisición de por lo menos una línea  telefónica y un smartphone, el cual sería utilizado por un empleado para tomar los pedidos y hacer entrega de la comanda a la cocina. La disponibilidad del mismo es esencial para brindar un buen servicio. 
 \\
 El enfoque del trabajo consiste en tomar la propuesta de Arredondo y convertirla en una de mayor eficiencia en términos de costo, recursos, tiempo, empleados y que maximice las ventas.  
 
@@ -115,7 +116,7 @@ Es importante que tanto los clientes jóvenes como los adultos que atienden la h
 \\\\
 Para comenzar a pedir hamburguesas se necesita tener instalada la aplicación de mensajería Telegram. Los comandos del bot se ejecutan enviando un mensaje de texto que comience con “\textbackslash”.
 \\
-Dentro de la aplicación comenzamos una conversación con el chatbot y para realizar pedidos nuevos utilizaremos el comando  \color{blue}\uline{\textbackslash start}\color{black}.
+Dentro de la aplicación comenzamos una conversación con el chatbot y realizamos nuevos pedidos utilizando el comando  \color{blue}\uline{\textbackslash start}\color{black}.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=1.0\linewidth]{diagrama-flujo.jpeg}
@@ -132,7 +133,7 @@ A continuación detallaremos las fases del proceso de armado de la hamburguesa.
 	
 	\item \textbf{Fase 1}: El primer paso consiste en seleccionar el tamaño deseado para nuestra hamburguesa, puede ser simple, doble o triple.
 	
-	\item \textbf{Fase 2}: Una vez seleccionado el tamaño de la hamburguesa procedemos a elegir los ingredientes adicionales, entre ellos: queso, pepinos, tomate, lechuga, salsa, etc. 
+	\item \textbf{Fase 2}: Una vez seleccionado el tamaño de la hamburguesa procedemos a elegir los ingredientes adicionales, entre ellos: queso, pepinos, tomate, lechuga, salsa, etc. O también deshacer la última operación.
 	
 	\item \textbf{Fase 3}: Una vez seleccionado el ingrediente deseado procedemos a elegir la cantidad deseada del mismo. Una vez seleccionada la cantidad volveremos a la Fase 2, lo cual nos permite seguir agregando otros ingredientes.
 	
@@ -166,7 +167,7 @@ el cual aporta ayuda sobre los distintos comandos y cómo comenzar un pedido.
 
 \subsection{Aplicación Web}
 
-El personal del restaurante podrá visualizar y mantener registro de los pedidos de los clientes accediendo a la aplicación web disponible en la red local.
+El personal del restaurante podrá visualizar y mantener registro de los pedidos de los clientes accediendo a la aplicación web.
 \\
 Bajo la sección “Pending Orders” se podrá realizar un seguimiento de las órdenes enviadas por los clientes que aún no fueron completadas. Las mismas se encuentran ordenadas desde la más antigua a la más reciente, dándole prioridad a aquellos que realizaron antes su pedido.
 
@@ -219,48 +220,69 @@ Una hamburguesa puede ser simple, doble o triple. A su vez se le pueden agregar 
 
 \subsection{Chatbot	}
 
-A la hora de implementar el chatbot se tuvo decidir entre las plataformas WhatsApp y Telegram. Por un lado WhatsApp es la aplicación de mensajería más adoptada a nivel global y la que utiliza Arredondo para comunicarse con sus clientes. A diferencia, Telegram no es una aplicación popular, sin embargo telegram-bot-simple \cite{telegram-bot-simple} es una librería escrita en Haskell basada en la Telegram Bot API \cite{telegram-bot-api} que nos permite crear bots para Telegram. Por estas razón se optó por desarrollar el chatbot en Telegram.
+A la hora de implementar el chatbot se tuvo decidir entre las plataformas WhatsApp y Telegram. Por un lado WhatsApp es la aplicación de mensajería más adoptada a nivel global y la que utiliza Arredondo para comunicarse con sus clientes.
 \\
-Telegram-bot-simple requiere de definir dos tipos en Haskell. Uno al cual nombramos \textbf{BotModel} que representa el estado de una conversación del bot. El otro representa las acciones que ejecuta el bot, a el cual nombramos \textbf{Action}.
+A diferencia, Telegram no es una aplicación popular, sin embargo telegram-bot-simple \cite{telegram-bot-simple} es una librería desarrollada en Haskell basada en la Telegram Bot API \cite{telegram-bot-api} que nos permite crear bots para Telegram. Por estas razón se optó por desarrollar el chatbot en Telegram.
+\\
+Telegram-bot-simple posee constructor \textbf{BotApp} parametrizada por dos tipos \textbf{model} y \textbf{action} para crear bots.
 
 \begin{minted}{haskell}
+data BotApp model action = BotApp
+{	 botInitialModel :: model
+	, botAction       :: Telegram.Update -> model -> Maybe action
+	, botHandler      :: action -> model -> Eff action model
+	, botJobs         :: [BotJob model action]
+}
+\end{minted}
+
+\begin{itemize}
+	\item \textbf{botInitialModel}: Estado inicial del bot (\textbf{model}).
+	\item \textbf{botAction}: Toma updates de Telegram y los convierte en acciones (\textbf{action}).
+	\item \textbf{botHandler}: Maneja las acciones emitidas (\textbf{action}), retorna un nuevo estado de conservación del bot (\textbf{model}) y la próxima acción a realizar.
+	\item \textbf{botJobs}: Lista de trabajos a ejecutar según un cronograma. No utilizaremos esta funcionalidad.
+\end{itemize}
+
+Entonces se definieron dos nuevos tipos: \textbf{BotModel} que representa el estado de una conversación del bot y \textbf{Action} representando las acciones que ejecutara el bot.
+
+\begin{minted}{haskell}
+data Prices = Prices {
+	toppingsPrices  :: [(Topping, Double)],
+	burgersPrices   :: [(Burger, Double)]
+} deriving (Show)
+
 data BotModel = BotModel {
 	burgers         :: [Burger],
 	currentBurger   :: Maybe Burger,
-	prices          :: Prices
+	prices          :: Prices,
+	actions         :: [Burger]
 } deriving (Show)
 
 data Action = DoNothing | Start  | BurgerMenu | ToppingMenu (Maybe Topping) |
 	SauceMenu  | AddBurger Burger | AddTopping Topping Int | Order |
-	Confirm (Maybe Client)  | Remove Text  | ShowOrder  | Help  
+	Confirm (Maybe Client)  | Remove Text  | ShowOrder  | Help  | Undo
 	deriving (Show, Read)
 \end{minted}
 
-A la hora de crear nuestro \textbf{BotApp}, el constructor de la librería que requiere de 4 parámetros.
-
-\begin{itemize}
-	\item \textbf{botInitialModel}: Estado inicial del bot (\textbf{BotModel}).
-	\item \textbf{botAction}: Toma updates de Telegram y los convierte en acciones (\textbf{Action}).
-	\item \textbf{botHandler}: Maneja las acciones emitidas (\textbf{Action}), retorna un nuevo estado de conservación del bot (\textbf{BotModel}) y la próxima a acción a realizar.
-	\item \textbf{botJobs}: Lista de trabajos a ejecutar según un cronograma. No utilizaremos esta funcionalidad.
-\end{itemize}
-
-\textit{burgersPrices} y \textit{toppingPrices} son listas de tipo  \textbf{[(Burger, Double)]} y \textbf{[(Topping, Double)]} respectivamente. Almacenan los precios correspondientes a cada ingrediente adicional y tamaño de hamburguesa. Estos precios son tomados mediante una consulta a la base de datos. Se decidió tomar estos valores al iniciar el bot y almacenarlos  en el estado con el fin de evitar realizar repetidas consultas a la base de datos cada vez que se necesite obtener el precio de algún elemento.
+Finalmente creamos el bot con la siguiente función:
 
 \begin{minted}{haskell}
 getBot :: IO (BotApp BotModel Action)
 getBot = do
-burgersPrices <- selectBurgersPrices
-toppingsPrices <- selectToppingsPrices
-let bot = BotApp  { botInitialModel = BotModel [] Nothing $ 
-		Prices toppingsPrices burgersPrices
-	, botAction = flip handleUpdate
-	, botHandler = handleAction
-	, botJobs = []  }
-return bot    
+	burgersPrices <- selectBurgersPrices
+	toppingsPrices <- selectToppingsPrices
+	let bot = BotApp  { 
+		botInitialModel = BotModel $ 
+			[] Nothing (Prices toppingsPrices burgersPrices) []
+		, botAction = flip handleUpdate
+		, botHandler = handleAction
+		, botJobs = []  
+	}
+	return bot       
 \end{minted}
-	
-Las acciones del bot pueden ser accionadas mediante comandos enviados como mensaje de texto por el usuario o por una acción de callback llamada al cliquear alguno de los botones disponibles.
+
+\textit{burgersPrices} y \textit{toppingPrices} son listas de tipo  \textbf{[(Burger, Double)]} y \textbf{[(Topping, Double)]} respectivamente. Almacenan los precios correspondientes a cada ingrediente adicional y tamaño de hamburguesa. Estos precios son tomados mediante una consulta a la base de datos. Se decidió tomar estos valores al iniciar el bot y almacenarlos  en el estado de la conversación con el fin de evitar realizar repetidas consultas a la base de datos cada vez que se necesite obtener el precio de algún elemento.
+\\\\
+Las acciones del bot pueden ser accionadas mediante comandos enviados como mensaje de texto por el usuario o por una acción de callback llamada al cliquear alguno de los botones disponibles en formato “inline keyboard” .
 
 \begin{minted}{haskell}
 handleUpdate :: BotModel ->  Telegram.Update -> Maybe Action
@@ -293,7 +315,7 @@ A continuación detallaremos sobre el diseño de cada acción.
 	. No altera el estado del bot. Comienza el proceso de creación de la hamburguesa enviando al usuario una serie de botones en formato “inline keyboard” para seleccionar el tamaño deseado de su hamburguesa. Su próxima acción es \textbf{DoNothing}.
 	
 	\item
-	\textbf{AddBurger  \color{blue}Burger\color{black}}: Accionado como callback al cliquear sobre un botón inline de tamaño de hamburguesa. Almacena la hamburguesa seleccionada en la variable \textit{currentBurger} de nuestro \textbf{BotModel} y lo retorna como nuevo estado.  Su próxima acción es \textbf{ToppingMenu}.
+	\textbf{AddBurger  \color{blue}Burger\color{black}}: Accionado como callback al cliquear sobre un botón inline de tamaño de hamburguesa. Almacena la hamburguesa seleccionada en la variable \textit{currentBurger} y la apila en la pila \textit{actions} de nuestro \textbf{BotModel} y lo retorna como nuevo estado.  Su próxima acción es \textbf{ToppingMenu}.
 	
 	\item
 	\textbf{ToppingMenu \color{blue}(Maybe Topping)\color{black}}: No altera el estado del bot. Envía al usuario una serie de botones en formato “inline keyboard” para seleccionar los ingredientes adicionales, al cliquear en uno se despliega una nueva serie de botones que permiten elegir la cantidad del mismo. Su próxima acción es \textbf{DoNothing}.
@@ -302,7 +324,7 @@ A continuación detallaremos sobre el diseño de cada acción.
 	\textbf{SauceMenu}: No altera el estado del bot. Funciona como una extensión del menú de ingredientes adicionales para evitar el extenso contenido en un mismo lugar. Aquí solo se encuentran las salsas, por lo que envía al usuario una serie de botones en formato “inline keyboard” para seleccionar la salsa deseada. Su próxima acción es \textbf{DoNothing}.
 	
 	\item
-	\textbf{AddTopping \color{blue}Topping Int\color{black}}: Accionado como callback una vez seleccionado el ingrediente adicional y su cantidad en el menú de botones inline. Modifica el estado de nuestro \textbf{BotModel} agregando una capa a la hamburguesa almacenada en la variable \textit{currentBurger} y lo retorna como nuevo estado. Su próxima acción es \textbf{ToppingMenu}, así el usuario puede seguir agregando más ingredientes a su hamburguesa.
+	\textbf{AddTopping \color{blue}Topping Int\color{black}}: Accionado como callback una vez seleccionado el ingrediente adicional y su cantidad en el menú de botones inline. Modifica el estado de nuestro \textbf{BotModel} agregando una capa a la hamburguesa almacenada en la variable \textit{currentBurger} y la apila en la pila \textit{actions} y lo retorna como nuevo estado. Su próxima acción es \textbf{ToppingMenu}, así el usuario puede seguir agregando más ingredientes a su hamburguesa.
 	
 	\item
 	\textbf{Order}: Accionado como callback una vez que no se desean agregar más ingredientes adicionales a la hamburguesa, es decir ya está creada según las preferencias del usuario y queremos agregarla a nuestro pedido. Almacena la hamburguesa creada en la lista \textit{burgers} de nuestro \textbf{BotModel} y lo retorna como nuevo estado. Responde con un mensaje de confirmación al usuario y su próxima acción es \textbf{DoNothing}.
@@ -318,9 +340,13 @@ A continuación detallaremos sobre el diseño de cada acción.
 	. Altera el modelo quitando de la lista \textit{burgers} la hamburguesa indicada por parametro.su próxima acción es \textbf{ShowOrder}. 
 	
 	\item
+	\textbf{Undo}
+	Deshace una operacion de \textbf{AddTopping} o \textbf{AddBurger}. Altera el modelo \textbf{BotModel} desapilando de la pila \textit{actions} el ultimo estado de la hamburguesa creada. Luego almacena en la variable \textit{currentBurger} el nuevo ultimo elemneto de la pila \textit{actions} y lo retorna como nuevo estado. Su próxima acción depende del valor de \textit{currentBurger}, según este puede ser \textbf{ToppingMenu} o \textbf{BurgerMenu}.
+	
+	\item
 	\textbf{ShowOrder}: Accionado con el comando 
 	\color{blue}\uline{\textbackslash show}\color{black}
-	. No altera el estado del bot, envía como mensaje de texto al usuario todas las hamburguesas de su orden y su precio. Su próxima acción es \textbf{DoNothing}.
+	. No altera el estado del bot, envía como mensaje de texto al usuario todas las hamburguesas de su orden y su precio. Su próxima acción es \textbf{DoNothing}. 
 	
 	\item
 	\textbf{Help}: Accionado con el comando 
@@ -330,6 +356,35 @@ A continuación detallaremos sobre el diseño de cada acción.
 \end{itemize}
 
 A la hora de diseñar las acciones y su efecto, el tipo \textbf{BotModel} e implementar la función \textit{handleAction} se tuvo que optar por incluir en \textbf{BotModel} la variable \textit{currentBurger}. Esta decisión se tomó debido a que telegram-bot-simple permite un máximo de 64 bytes a ser enviados en una acción de callback. Si deseamos enviar el dato \textit{currentBurger} como parámetro en una acción de callback la cantidad de ingredientes adicionales a agregar sería limitada.
+\\
+Se utilizaron State Monads para implementar funciones que modifiquen el estado del \textbf{BotModel} y retornar un valor, como también encadenar las operaciones con la notación do. Esto se debe a que las State Monads determinan cuál debe ser el estado después de la primera operación. Luego, resuelve la segunda operación con el nuevo estado y así sucesivamente hasta finalizar. 
+\\\\
+Ejemplo:
+
+\begin{minted}{haskell}
+setCurrentBurger :: Burger -> State BotModel Burger
+setCurrentBurger burger = state (\model -> (burger , model {
+	actions = [], 
+	currentBurger = Just burger 
+}))
+
+
+initBurger :: Burger -> State BotModel Burger
+initBurger burger = do 
+	setCurrentBurger burger
+	push burger
+	return burger
+
+
+push :: Burger -> State BotModel Burger
+push action = state (\model -> 
+	(action, model {actions = actions model ++ [action]}))
+
+
+handleAction (AddBurger burger) model = execState (initBurger burger) model 
+	<# do return (ToppingMenu Nothing)
+
+\end{minted}
 
 \subsection{Aplicación Web}
 
@@ -381,11 +436,13 @@ Telegram Bot Api permite crear bots que acepten pagos, sin embargo esta funciona
 \\\\
 Con el fin de mejorar la experiencia del cliente, el chatbot podría ofrecer mensajes de seguimiento. Como por ejemplo notificarle cuando su pedido comenzó a prepararse en la cocina y cuando está en camino a su mesa.
 \\\\
-Por último se puede agregar un botón de “undo“ a la hora de crear una hamburguesa para poder deshacer errores cometidos en el proceso.
+Por último se podría ampliar el menú agregando bebidas y otros productos.
 
 \subsection{Aplicación Web}
 
-El principal objetivo del proyecto consistió en la realización del chatbot por lo que se imitó a que la aplicación web sea sencilla y de rápido desarrollo. Carece de diversas funcionalidades como por ejemplo credenciales de acceso para los empleados del restaurante.
+El principal objetivo del proyecto consistió en la realización del chatbot por lo que se limitó a que la aplicación web sea sencilla y de rápido desarrollo. Carece de diversas funcionalidades como por ejemplo credenciales de acceso para los empleados del restaurante.
+\\\\
+En el futuro se podría usar los datos almacenados para generar reportes, gráficos y análisis estadístico de tendencias del consumo, ventas, control del stock de ingredientes.
 
 \section{Conclusiones}
 

@@ -50,23 +50,23 @@ emptyOrder = state (\model -> let model' = model { currentBurger = Nothing, burg
 
 -- | Aux function, saves burger as currentBurger
 -- Returns resulting burger as value of state computation
-initBurger' :: Burger -> State BotModel Burger
-initBurger' burger = state (\model -> (burger , model {actions = [], currentBurger = Just burger }))
+setCurrentBurger :: Burger -> State BotModel Burger
+setCurrentBurger burger = state (\model -> (burger , model {actions = [], currentBurger = Just burger }))
 
 
 -- | Saves burger as current for costumization, add's first step to actions stack
 -- Returns resulting burger as value of state computation
 initBurger :: Burger -> State BotModel Burger
 initBurger burger = do 
-    initBurger' burger
+    setCurrentBurger burger
     push burger
     return burger
 
 
 -- | Aux function, add's topping to currentBurger
 -- Returns resulting burger as value of state computation
-addTopping' :: Topping -> Int -> State BotModel (Maybe Burger)
-addTopping' topping amount = state (\model -> let b' = h (currentBurger model) in (b', model { currentBurger = b'})) where
+addToppingToCurrentBurger :: Topping -> Int -> State BotModel (Maybe Burger)
+addToppingToCurrentBurger topping amount = state (\model -> let b' = h (currentBurger model) in (b', model { currentBurger = b'})) where
     h Nothing = Nothing
     h (Just b) = Just $ add b topping amount
 
@@ -75,7 +75,7 @@ addTopping' topping amount = state (\model -> let b' = h (currentBurger model) i
 -- Returns resulting burger as value of state computation
 addTopping :: Topping -> Int -> State BotModel (Maybe Burger)    
 addTopping topping amount = do 
-    burger <- addTopping' topping amount
+    burger <- addToppingToCurrentBurger topping amount
     case burger of 
         Nothing -> return Nothing
         Just b  -> do 
@@ -88,7 +88,9 @@ addTopping topping amount = do
 undo :: State BotModel (Maybe Burger)
 undo = do 
     burger <- pop
-    modify (\model -> model {currentBurger = if null (actions model) then Nothing else Just $ actions model !! (length (actions model) -1)} )
+    modify (\model -> model {currentBurger = if null (actions model) 
+                                                then Nothing 
+                                                else Just $ actions model !! (length (actions model) -1)} )
     case burger of 
         Nothing -> return Nothing
         Just b  -> return burger

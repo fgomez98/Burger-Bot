@@ -90,16 +90,3 @@ status2Bool status = do
     "Completed"     -> return True
     "Not Completed" -> return False
     _               -> fail ""        
-
-
-landingHTML :: Text
-landingHTML =
-  "<html>\
-    \<body>\
-      \<p>Hello world! Please enter your username!\
-      \<form action=\"/hello\" method=\"post\">\
-        \Username: <input type=\"text\" name=\"username\"><br>\
-        \<input type=\"submit\"><br>\
-      \</form>\
-    \</body>\
-  \</html>"

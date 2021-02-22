@@ -4,7 +4,7 @@ module Model.Burger where
 import           Data.Text                        (Text, pack)
 
 
-data Burger =  Layer Int Topping Burger | Simple | Double | Triple | Empty deriving (Show, Eq, Read)
+data Burger =  Layer Int Topping Burger | Simple | Double | Triple deriving (Show, Eq, Read)
 data Topping = Tomato | Cheese | Egg | Onion | Bacon |Lettuce | Pickle | Mushroom | Mayo | Ketchup | Mustard  deriving (Show, Eq, Read)
 
 data Prices = Prices {
