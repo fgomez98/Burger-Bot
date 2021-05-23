@@ -59,7 +59,7 @@ To deploy the we application run:
 stack exec web-app
 ```
 
-## Some link's that where usefull to code this proyect 
+## Some link's that where usefull for this proyect 
 
 * https://github.com/fizruk/telegram-bot-simple/
 * https://www.youtube.com/watch?v=dfTTgdlsSzo&t=421s
