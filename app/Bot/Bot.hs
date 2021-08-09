@@ -198,7 +198,7 @@ handleAction Order model = case currentBurger model of
         editUpdateMessage (toEditMessage (orderMessage (prices model) b)) 
         return DoNothing
 
-handleAction (Confirm (Just client)) model = execState emptyOrder model  <#
+handleAction (Confirm (Just client)) model = execState emptyOrder model <#
 		case burgers model of 
 			[]    -> do 
 				replyText "Your order is empty. Type /menu to add a burger to your order"

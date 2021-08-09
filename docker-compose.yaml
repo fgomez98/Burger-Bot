@@ -1,0 +1,44 @@
+version: "3"
+
+services:
+  burger-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - TOKEN_TELEGRAM=1505157044:AAElkp-XV-JQdxerKIfteD-4QawQnv9BSys
+      - DB_NAME=telegram_bot_db
+      - DB_USER=admin
+      - DB_PASSWD=password
+      - DB_HOST=database
+      - DB_PORT=5432
+    # ports:
+    #   - "5432:5432"
+    depends_on:
+      - "database"
+    command: ["/wait-for-it.sh", "database:5432", "--", "bash", "-c", "/opt/app/burger-bot"]
+  web-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DB_NAME=telegram_bot_db
+      - DB_USER=admin
+      - DB_PASSWD=password
+      - DB_HOST=database
+      - DB_PORT=5432
+    ports:
+      - "8080:3000"
+      # - "5432:5432"
+    depends_on:
+      - "database"
+    command: ["/wait-for-it.sh", "database:5432", "--", "bash", "-c", "/opt/app/web-app"]
+  database:
+    image: postgres
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "9999:5432"
+    volumes:
+      - ./app/resources/sql/init-db.sql:/docker-entrypoint-initdb.d/init.sql

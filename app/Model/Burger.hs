@@ -5,7 +5,7 @@ import           Data.Text                        (Text, pack)
 
 
 data Burger =  Layer Int Topping Burger | Simple | Double | Triple deriving (Show, Eq, Read)
-data Topping = Tomato | Cheese | Egg | Onion | Bacon |Lettuce | Pickle | Mushroom | Mayo | Ketchup | Mustard  deriving (Show, Eq, Read)
+data Topping = Tomato | Cheese | Egg | Onion | Bacon | Lettuce | Pickle | Mushroom | Mayo | Ketchup | Mustard  deriving (Show, Eq, Read)
 
 data Prices = Prices {
   toppingsPrices  :: [(Topping, Double)],
