@@ -59,14 +59,13 @@ To deploy the we application run:
 stack exec web-app
 ```
 
-## Some link's that where usefull to code this proyect 
+## Some link's that where usefull for this proyect 
 
 * https://github.com/fizruk/telegram-bot-simple/
 * https://www.youtube.com/watch?v=dfTTgdlsSzo&t=421s
 * https://www.youtube.com/watch?v=dfTTgdlsSzo&t=421s
 * https://github.com/keoko/postgresql-simple-examples
 * https://www.lambda-land.com/posts/2017-11-16-postgresql-simple
-* https://github.com/keoko/postgresql-simple-examples
 * https://mmhaskell.com/blog/2018/9/17/simple-web-routing-with-spock
 * https://jaspervdj.be/blaze/tutorial.html
 
