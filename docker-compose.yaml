@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      - TOKEN_TELEGRAM=1505157044:AAElkp-XV-JQdxerKIfteD-4QawQnv9BSys
+      - TOKEN_TELEGRAM="${TOKEN_TELEGRAM}"
       - DB_NAME=telegram_bot_db
       - DB_USER=admin
       - DB_PASSWD=password
